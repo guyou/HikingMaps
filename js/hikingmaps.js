@@ -417,6 +417,7 @@ function PositionUpdatePlayPause()
 	document.getElementById("locate").classList.remove('invisible');
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
+	geolocate.watch=false;
 	geolocatefailed=false;
 	clearInterval(geolocatechecktimer);
 	geolocate.deactivate();
@@ -426,6 +427,7 @@ function PositionUpdatePlayPause()
 	document.getElementById("locate").classList.add('invisible');
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
+	geolocate.watch=true;
 	geolocatefailed=false;
 	geolocatechecktimer=setInterval(TimerGeolocateCheck,5000);
 	geolocate.activate();
@@ -459,6 +461,7 @@ function TimerGeolocateCheck()
 function WayDelete()
 {
     positionlayer.removeAllFeatures();
+    firstgeolocation=true;
 };
 
 function ClearCache()
