@@ -22,6 +22,7 @@ var layerswitchersenlarged;
 var layerswitcherenlargeinterval=null;
 var localizationchecktimer;
 var mozL10n=navigator.mozL10n;
+var pathlength=0;
 
 document.getElementById("body").onload = WaitForLocalizationToLoad;
 OpenLayers.Renderer.symbol.arrow = [0, 0, -8, 8, 0, -20, 8, 8, 0, 0];
@@ -171,11 +172,8 @@ function UpdateTrackFiles()
     return false;
 };
 
-/* Function to open track file and launch recreation of track layer in a normal navigator (input type="file") */
-
-function NewTrackFileByInput(evt)
+function NewTrackFile(f)
 {
-    f=evt.target.files[0];
     if (f.name.split('.').pop()=="gpx")
     {
 	trackparser=new OpenLayers.Format.GPX();
@@ -188,39 +186,39 @@ function NewTrackFileByInput(evt)
     reader.onload=function(e)
     {
 	var trackfeatures=trackparser.read(e.target.result);
+	var tracklength=0;
 	for (trackfeatureindex in trackfeatures)
 	{
 	    trackfeatures[trackfeatureindex].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
+	    for (pointindex in trackfeatures[trackfeatureindex].geometry.getVertices())
+	    {
+		if (!enyo.platform.firefoxOS && pointindex>0)
+		{
+		    tracklength=tracklength+new OpenLayers.Geometry.LineString([trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex-1],trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex]]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
+		};
+	    };
 	};
 	AddTrackLayerByFeatures(trackfeatures);
+	if (!enyo.platform.firefoxOS)
+	{
+	    document.getElementById('track-length-display').textContent=tracklength.toFixed(0).toString()+' m';
+	}
     };
     reader.readAsText(f);
 };
+
+/* Function to open track file and launch recreation of track layer in a normal navigator (input type="file") */
+
+function NewTrackFileByInput(evt)
+{
+    NewTrackFile(evt.target.files[0]);
+}
 
 /* Function to open track file and launch recreation of track layer in FirefoxOS (select) */
 
 function NewTrackFileBySelect(evt)
 {
-    f=tracks[document.getElementById('trackfileselect').value];
-    if (f.name.split('.').pop()=="gpx")
-    {
-	trackparser=new OpenLayers.Format.GPX();
-    }
-    else if (f.name.split('.').pop()=="kml")
-    {
-	trackparser=new OpenLayers.Format.KML();
-    };
-    reader=new FileReader();
-    reader.onload=function(e)
-    {
-	var trackfeatures=trackparser.read(e.target.result);
-	for (trackfeatureindex in trackfeatures)
-	{
-	    trackfeatures[trackfeatureindex].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
-	};
-	AddTrackLayerByFeatures(trackfeatures);
-    };
-    reader.readAsText(f);
+    NewTrackFile(tracks[document.getElementById('trackfileselect').value]);
 };
 
 /* Function to open track file and launch recreation of track layer in FirefoxOS without permissions from a file in the server (input type="text") */
@@ -293,6 +291,11 @@ function PositionUpdated(e)
 		}
 	    )
 	]);
+	if (!enyo.platform.firefoxOS)
+	{
+	    pathlength=pathlength+new OpenLayers.Geometry.LineString([new OpenLayers.Geometry.Point(lastx,lasty),new OpenLayers.Geometry.Point(e.point.x,e.point.y)]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
+	    document.getElementById('path-length-display').textContent=pathlength.toFixed(0).toString()+' m';
+	}
     };
 
     /* Draw new position drawings */
@@ -462,6 +465,8 @@ function WayDelete()
 {
     positionlayer.removeAllFeatures();
     firstgeolocation=true;
+    pathlength=0;
+    document.getElementById('path-length-display').textContent='';
 };
 
 function ClearCache()
