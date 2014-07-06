@@ -15,6 +15,7 @@ OpenLayers.Control.CacheDBRead = OpenLayers.Class(OpenLayers.Control.CacheRead, 
                 evt.tile instanceof OpenLayers.Tile.Image) {
             var tile = evt.tile,
                 url = tile.url;
+
             // deal with modified tile urls when both CacheDBWrite and CacheDBRead
             // are active
             if (!tile.layer.crossOriginKeyword && OpenLayers.ProxyHost &&
@@ -27,9 +28,8 @@ OpenLayers.Control.CacheDBRead = OpenLayers.Class(OpenLayers.Control.CacheRead, 
 	    var request = transaction.objectStore(objStore).get(url);
 	    request.onsuccess = function(event)
 	    {
-		tile.url = request.result;
-                if (evt.type === "tileerror") {
-                    tile.setImgSrc(tile.url);
+		if (request.result && evt.type === "tileerror") {
+		    tile.setImgSrc(request.result);
 		    tile.onImageLoad();
                 }
 	    };

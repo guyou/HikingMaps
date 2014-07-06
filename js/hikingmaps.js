@@ -21,6 +21,7 @@ var trackparser;
 var layerswitchersenlarged;
 var layerswitcherenlargeinterval=null;
 var localizationchecktimer;
+var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var mozL10n=navigator.mozL10n;
 var pathlength=0;
 
@@ -192,14 +193,14 @@ function NewTrackFile(f)
 	    trackfeatures[trackfeatureindex].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
 	    for (pointindex in trackfeatures[trackfeatureindex].geometry.getVertices())
 	    {
-		if (!enyo.platform.firefoxOS && pointindex>0)
+		if (!firefoxOS && pointindex>0)
 		{
 		    tracklength=tracklength+new OpenLayers.Geometry.LineString([trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex-1],trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex]]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
 		};
 	    };
 	};
 	AddTrackLayerByFeatures(trackfeatures);
-	if (!enyo.platform.firefoxOS)
+	if (!firefoxOS)
 	{
 	    document.getElementById('track-length-display').textContent=tracklength.toFixed(0).toString()+' m';
 	}
@@ -291,7 +292,7 @@ function PositionUpdated(e)
 		}
 	    )
 	]);
-	if (!enyo.platform.firefoxOS)
+	if (!firefoxOS)
 	{
 	    pathlength=pathlength+new OpenLayers.Geometry.LineString([new OpenLayers.Geometry.Point(lastx,lasty),new OpenLayers.Geometry.Point(e.point.x,e.point.y)]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
 	    document.getElementById('path-length-display').textContent=pathlength.toFixed(0).toString()+' m';
@@ -753,7 +754,7 @@ function InitializeApplication()
 
     /* Define correct method for track file selection depending on system */
 
-    if (enyo.platform.firefoxOS)
+    if (firefoxOS)
     {
 	UpdateTrackFiles();
 	document.getElementById('trackfileselect').addEventListener('change',NewTrackFileBySelect,false);
