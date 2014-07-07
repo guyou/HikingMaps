@@ -193,17 +193,14 @@ function NewTrackFile(f)
 	    trackfeatures[trackfeatureindex].geometry.transform(new OpenLayers.Projection("EPSG:4326"), new OpenLayers.Projection("EPSG:900913"));
 	    for (pointindex in trackfeatures[trackfeatureindex].geometry.getVertices())
 	    {
-		if (!firefoxOS && pointindex>0)
+		if (pointindex>0)
 		{
 		    tracklength=tracklength+new OpenLayers.Geometry.LineString([trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex-1],trackfeatures[trackfeatureindex].geometry.getVertices()[pointindex]]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
 		};
 	    };
 	};
 	AddTrackLayerByFeatures(trackfeatures);
-	if (!firefoxOS)
-	{
-	    document.getElementById('track-length-display').textContent=tracklength.toFixed(0).toString()+' m';
-	}
+	document.getElementById('track-length-display').textContent=tracklength.toFixed(0).toString()+' m';
     };
     reader.readAsText(f);
 };
@@ -292,11 +289,8 @@ function PositionUpdated(e)
 		}
 	    )
 	]);
-	if (!firefoxOS)
-	{
-	    pathlength=pathlength+new OpenLayers.Geometry.LineString([new OpenLayers.Geometry.Point(lastx,lasty),new OpenLayers.Geometry.Point(e.point.x,e.point.y)]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
-	    document.getElementById('path-length-display').textContent=pathlength.toFixed(0).toString()+' m';
-	}
+	pathlength=pathlength+new OpenLayers.Geometry.LineString([new OpenLayers.Geometry.Point(lastx,lasty),new OpenLayers.Geometry.Point(e.point.x,e.point.y)]).getGeodesicLength(new OpenLayers.Projection("EPSG:900913"));
+	document.getElementById('path-length-display').textContent=pathlength.toFixed(0).toString()+' m';
     };
 
     /* Draw new position drawings */
@@ -617,7 +611,10 @@ function InitializeApplication()
 
     /* Create and add OpenStreetMap layer */
 
-    osmlayer=new OpenLayers.Layer.OSM();
+    osmlayer=new OpenLayers.Layer.OSM("OpenStreetMap",
+				      ["http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+				       "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+				       "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"]);
     map.addLayer(osmlayer);
 
     osmlayer=new OpenLayers.Layer.OSM("Transport (OSM)",
