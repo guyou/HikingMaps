@@ -16,7 +16,6 @@ var lastx,lasty;
 var lastcircle,lastcross;
 var lastdirection=null;
 var geolocatechecktimer;
-var geolocatefailed;
 var trackparser;
 var layerswitchersenlarged;
 var layerswitcherenlargeinterval=null;
@@ -265,10 +264,8 @@ function PulsatePrecisionCircle(feature)
 };
 
 /* Funtion to draw position when updated */
-
 function PositionUpdated(e)
 {
-
     /* Delete last position drawings and add line if not first time */
 
     if (firstgeolocation==false)
@@ -358,6 +355,7 @@ function PositionUpdated(e)
 	icon='cross';
 	direction=0;
 	lastdirection=null;
+	geolocate.deactivate();
     };
     cross=new OpenLayers.Feature.Vector(
 	e.point,
@@ -392,7 +390,6 @@ function PositionUpdated(e)
 
     lastx=e.point.x;
     lasty=e.point.y;
-
 };
 
 /* Function to update position manually */
@@ -416,7 +413,6 @@ function PositionUpdatePlayPause()
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
 	geolocate.watch=false;
-	geolocatefailed=false;
 	clearInterval(geolocatechecktimer);
 	geolocate.deactivate();
     }
@@ -426,8 +422,6 @@ function PositionUpdatePlayPause()
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
 	geolocate.watch=true;
-	geolocatefailed=false;
-	geolocatechecktimer=setInterval(TimerGeolocateCheck,5000);
 	geolocate.activate();
     };
 };
@@ -438,19 +432,8 @@ function PositionUpdateRestart()
 {
     if (geolocate.watch)
     {
-	geolocatefailed=true;
-    };
-};
-
-/* Periodically restart automatic position update if not active */
-
-function TimerGeolocateCheck()
-{
-    if (geolocate.watch && geolocatefailed)
-    {
 	geolocate.deactivate();
 	geolocate.activate();
-	geolocatefailed=false;
     };
 };
 
@@ -721,9 +704,9 @@ function InitializeApplication()
 	    bind: false,
 	    geolocationOptions:
 	    {
-		enableHighAccuracy: false,
+		enableHighAccuracy: true,
 		maximumAge: 0,
-		timeout: 7000
+		timeout: 20000
 	    }
 	}
     );
