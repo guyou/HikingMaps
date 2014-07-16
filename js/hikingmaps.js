@@ -118,7 +118,7 @@ function NewTrackFileBySelect(evt)
 /* Funtion to draw position when updated */
 function PositionUpdated(e)
 {
-    positionMarker.setPosition([e.coords.latitude, e.coords.longitude]);
+    positionMarker.setLatLng([e.coords.latitude, e.coords.longitude]);
     positionMarker.addTo(map);
 
     trackPolyline.addLatLng([e.coords.latitude, e.coords.longitude]);
@@ -260,8 +260,8 @@ function InitializeApplication()
     positionCircle = L.circle([51.505, -0.09], 0);
 
     map.on('locationfound', function(e) {
-	positionMarker.setPosition(e.latlng);
-	positionCircle.setPosition(e.latlng);
+	positionMarker.setLatLng(e.latlng);
+	positionCircle.setLatLng(e.latlng);
 	positionCircle.setRadius(e.accuracy / 2);
 
 	positionMarker.addTo(map);
