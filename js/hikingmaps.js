@@ -96,7 +96,7 @@ function NewTrackFile(f)
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
-	document.getElementById('track-length-display').textContent=trackControl._info.length.toFixed(0);
+	document.getElementById('track-length-display').textContent=trackControl.get_distance().toFixed(0);
     };
     reader.readAsText(f);
 };
