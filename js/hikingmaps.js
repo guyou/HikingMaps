@@ -7,6 +7,9 @@ var localizationchecktimer;
 var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var mozL10n=navigator.mozL10n;
 
+var pathlength = 0;
+
+var trackControl = null;
 var trackPolyline = null;
 var trackingHandler = null;
 
@@ -81,13 +84,19 @@ function UpdateTrackFiles()
 
 function NewTrackFile(f)
 {
+    if (trackControl != null)
+    {
+	map.removeLayer(trackControl);
+    }
+
     reader=new FileReader();
     reader.onload=function(e)
     {
-	new L.GPX(e.target.result, {async: true}).on(
+	trackControl = new L.GPX(e.target.result, {async: true}).on(
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
+	document.getElementById('track-length-display').textContent=trackControl._info.length.toFixed(0);
     };
     reader.readAsText(f);
 };
@@ -114,6 +123,13 @@ function PositionUpdated(e)
 {
     trackPolyline.addLatLng([e.coords.latitude, e.coords.longitude]);
     map.panTo([e.coords.latitude, e.coords.longitude]);
+
+    var latlngs = trackPolyline.getLatLngs();
+    if (latlngs.length >= 2)
+    {
+        pathlength += latlngs[latlngs.length - 2].distanceTo(latlngs[latlngs.length - 1]);
+        document.getElementById('path-length-display').textContent=pathlength.toFixed(0);;
+    }
 };
 
 /* Function to update position manually */
@@ -156,7 +172,9 @@ function PositionUpdatePlayPause()
 /* Delete recorded way */
 function WayDelete()
 {
+    pathlength = 0;
     document.getElementById('path-length-display').textContent='';
+    map.removeLayer(trackPolyline);
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 };
 
@@ -245,6 +263,8 @@ function InitializeApplication()
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
 	maxZoom: 18
     }).addTo(map);
+
+    L.control.scale().addTo(map);
 
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 

@@ -71,8 +71,8 @@ section[role="region"]
 #track-length-display
 {
 	position: absolute;
-	left: 0;
-	top: 5rem;
+	left: 1rem;
+	top: 1rem;
 	color: #f00;
 	font: 2rem "MozTT", Sans-serif;
 	background-color: rgba(0, 0, 0, 0);
@@ -81,8 +81,8 @@ section[role="region"]
 #path-length-display
 {
 	position: absolute;
-	right: 0;
-	top: 5rem;
+	right: 1rem;
+	top: 1rem;
 	color: #00f;
 	font: 2rem "MozTT", Sans-serif;
 	background-color: rgba(0, 0, 0, 0);
