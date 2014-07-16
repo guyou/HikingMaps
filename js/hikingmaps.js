@@ -7,6 +7,9 @@ var localizationchecktimer;
 var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var mozL10n=navigator.mozL10n;
 
+var positionMarker = null;
+var positionCircle = null;
+
 var pathlength = 0;
 
 var trackControl = null;
@@ -17,7 +20,6 @@ document.getElementById("body").onload = WaitForLocalizationToLoad;
 
 
 /* Function to initialize the database */
-
 function InitializeDatabase(cb)
 {
     var request = window.indexedDB.open("HikingMaps", 1);
@@ -46,7 +48,6 @@ function InitializeDatabase(cb)
 	};
     };
 }
-
 
 /* Function to select a track file from the SD card */
 function UpdateTrackFiles()
@@ -87,6 +88,7 @@ function NewTrackFile(f)
     if (trackControl != null)
     {
 	map.removeLayer(trackControl);
+	trackControl = null;
     }
 
     reader=new FileReader();
@@ -94,9 +96,9 @@ function NewTrackFile(f)
     {
 	trackControl = new L.GPX(e.target.result, {async: true}).on(
 	    'loaded', function(e) {
+		document.getElementById('track-length-display').textContent=trackControl.get_distance().toFixed(0);
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
-	document.getElementById('track-length-display').textContent=trackControl.get_distance().toFixed(0);
     };
     reader.readAsText(f);
 };
@@ -113,14 +115,12 @@ function NewTrackFileBySelect(evt)
     NewTrackFile(tracks[document.getElementById('trackfileselect').value]);
 };
 
-/* Function to animate position precision circle */
-function PulsatePrecisionCircle(feature)
-{
-};
-
 /* Funtion to draw position when updated */
 function PositionUpdated(e)
 {
+    positionMarker.setPosition([e.coords.latitude, e.coords.longitude]);
+    positionMarker.addTo(map);
+
     trackPolyline.addLatLng([e.coords.latitude, e.coords.longitude]);
     map.panTo([e.coords.latitude, e.coords.longitude]);
 
@@ -133,14 +133,12 @@ function PositionUpdated(e)
 };
 
 /* Function to update position manually */
-
 function ManualPositionUpdate()
 {
     map.locate({setView: true, maxZoom: 16});
 };
 
 /* Play or pause automatic position update */
-
 function PositionUpdatePlayPause()
 {
     if (document.getElementById('locateplaypause').classList.contains('pause-btn'))
@@ -158,6 +156,7 @@ function PositionUpdatePlayPause()
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
 
+	map.removeLayer(positionCircle);
 	trackingHandler = navigator.geolocation.watchPosition(
             function(position) { PositionUpdated(position); },
             function(err) { },
@@ -172,6 +171,9 @@ function PositionUpdatePlayPause()
 /* Delete recorded way */
 function WayDelete()
 {
+    map.removeLayer(positionMarker);
+    map.removeLayer(positionCircle);
+
     pathlength = 0;
     document.getElementById('path-length-display').textContent='';
     map.removeLayer(trackPolyline);
@@ -183,7 +185,6 @@ function ClearCache()
 }
 
 /* Function to open the Settings screen */
-
 function OpenSettings()
 {
     var container=document.getElementById('container');
@@ -197,7 +198,6 @@ function OpenSettings()
 };
 
 /* Function to close the Settings screen */
-
 function EndSettings()
 {
     if (document.getElementById("enablecache").checked)
@@ -228,7 +228,6 @@ function EndSettings()
 };
 
 /* Wait for localization to be loaded */
-
 function WaitForLocalizationToLoad()
 {
     /* Activate timer */
@@ -236,7 +235,6 @@ function WaitForLocalizationToLoad()
 };
 
 /* Check if localization is loaded */
-
 function CheckLocalizationLoaded()
 {
     /* Check a string */
@@ -254,11 +252,22 @@ function CheckLocalizationLoaded()
 };
 
 /* Application initialization */
-
 function InitializeApplication()
 {
     /* Create map */
     map = L.map('map').setView([51.505, -0.09], 13);
+    positionMarker = L.marker([51.505, -0.09]);
+    positionCircle = L.circle([51.505, -0.09], 0);
+
+    map.on('locationfound', function(e) {
+	positionMarker.setPosition(e.latlng);
+	positionCircle.setPosition(e.latlng);
+	positionCircle.setRadius(e.accuracy / 2);
+
+	positionMarker.addTo(map);
+	positionCircle.addTo(map);
+    });
+
     L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
 	maxZoom: 18

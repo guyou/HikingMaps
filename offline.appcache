@@ -10,6 +10,9 @@ CACHE MANIFEST
 /js/leaflet.js
 /js/leaflet.functionaltilelayer.js
 /js/gpx.js
+/js/images/marker-icon.png
+/js/images/marker-icon-2x.png
+/js/images/marker-shadow.png
 /locales/locales.ini
 /locales/en.properties
 /css/hikingmaps.css
