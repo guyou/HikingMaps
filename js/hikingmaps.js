@@ -16,11 +16,7 @@ var ArrowIcon = L.Icon.extend({
 	var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
 	options = this.options;
 
-	div.innerHTML = '<div class="arrow-icon" style="transform: translate(-6px, -12px) rotate(' + options.direction + 'deg)" />';
-
-	if (options.bgPos) {
-	    div.style.backgroundPosition = (-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
-	}
+	div.innerHTML = '<div class="arrow-icon" style="transform: rotate(' + options.direction + 'deg)" />';
 	this._setIconStyles(div, 'icon');
 
 	return div;
@@ -168,7 +164,7 @@ function PositionUpdated(e)
         document.getElementById('path-length-display').textContent=pathlength.toFixed(0);;
     }
 
-    if (e.coords.heading!=NaN && e.coords.heading!=null)
+    if (e.coords.heading!=null && !isNaN(e.coords.heading))
     {
 	directionIcon.setDirection(e.coords.heading);
     }

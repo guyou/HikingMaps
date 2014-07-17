@@ -207,6 +207,10 @@ section[role="region"]
 	height: 0; 
 	border-left: 12px solid transparent;
 	border-right: 12px solid transparent;
-	
-	border-bottom: 24px solid blue;
+	border-bottom: 36px solid green;
+	opacity: 0.6;
+	transform-origin: 12px 24px;
+	position: relative;
+	left: -6px;
+	top: -16px;
 }
