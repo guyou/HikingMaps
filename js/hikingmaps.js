@@ -1,3 +1,41 @@
+var ArrowIcon = L.Icon.extend({
+    options: {
+	iconSize: [16, 16], // also can be set through CSS
+	/*
+	  iconAnchor: (Point)
+	  popupAnchor: (Point)
+	  html: (String)
+	  bgPos: (Point)
+	*/
+	direction: 0,
+	className: null,
+	html: false
+    },
+
+    createIcon: function (oldIcon) {
+	var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
+	options = this.options;
+
+	div.innerHTML = '<div class="arrow-icon" style="transform: translate(-6px, -12px) rotate(' + options.direction + 'deg)" />';
+
+	if (options.bgPos) {
+	    div.style.backgroundPosition = (-options.bgPos.x) + 'px ' + (-options.bgPos.y) + 'px';
+	}
+	this._setIconStyles(div, 'icon');
+
+	return div;
+    },
+
+    setDirection: function (dir) {
+	this.options.direction = dir;
+    },
+
+    createShadow: function () {
+	return null;
+    }
+});
+
+
 /* Global variables */
 
 var mainDB;
@@ -7,6 +45,8 @@ var localizationchecktimer;
 var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var mozL10n=navigator.mozL10n;
 
+var positionIcon = new L.Icon.Default();
+var directionIcon = new ArrowIcon();
 var positionMarker = null;
 var positionCircle = null;
 
@@ -118,9 +158,6 @@ function NewTrackFileBySelect(evt)
 /* Funtion to draw position when updated */
 function PositionUpdated(e)
 {
-    positionMarker.setLatLng([e.coords.latitude, e.coords.longitude]);
-    positionMarker.addTo(map);
-
     trackPolyline.addLatLng([e.coords.latitude, e.coords.longitude]);
     map.panTo([e.coords.latitude, e.coords.longitude]);
 
@@ -130,12 +167,26 @@ function PositionUpdated(e)
         pathlength += latlngs[latlngs.length - 2].distanceTo(latlngs[latlngs.length - 1]);
         document.getElementById('path-length-display').textContent=pathlength.toFixed(0);;
     }
+
+    if (e.coords.heading!=NaN && e.coords.heading!=null)
+    {
+	directionIcon.setDirection(e.coords.heading);
+    }
+    else
+    {
+	directionIcon.setDirection(0);
+    }
+
+    positionMarker.setIcon(directionIcon);
+    positionMarker.setLatLng([e.coords.latitude, e.coords.longitude]);
+    positionMarker.addTo(map);
 };
 
 /* Function to update position manually */
 function ManualPositionUpdate()
 {
-    map.locate({setView: true, maxZoom: 16});
+    map.locate({setView: true, maxZoom: 16,
+		timeout: 60000, maximumAge: 0, enableHighAccuracy: true});
 };
 
 /* Play or pause automatic position update */
@@ -256,10 +307,11 @@ function InitializeApplication()
 {
     /* Create map */
     map = L.map('map').setView([51.505, -0.09], 13);
-    positionMarker = L.marker([51.505, -0.09]);
+    positionMarker = L.marker([51.505, -0.09], { icon : positionIcon });
     positionCircle = L.circle([51.505, -0.09], 0);
 
     map.on('locationfound', function(e) {
+	positionMarker.setIcon(positionIcon);
 	positionMarker.setLatLng(e.latlng);
 	positionCircle.setLatLng(e.latlng);
 	positionCircle.setRadius(e.accuracy / 2);
