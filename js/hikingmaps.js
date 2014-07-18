@@ -168,10 +168,6 @@ function PositionUpdated(e)
     {
 	directionIcon.setDirection(e.coords.heading);
     }
-    else
-    {
-	directionIcon.setDirection(0);
-    }
 
     positionMarker.setIcon(directionIcon);
     positionMarker.setLatLng([e.coords.latitude, e.coords.longitude]);
@@ -316,10 +312,32 @@ function InitializeApplication()
 	positionCircle.addTo(map);
     });
 
-    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    var cacheLayer = new L.TileLayer.Functional(function (view) {
+	var deferred = {
+	    _fn : null,
+
+	    then: function (fn) {
+		this._fn = fn;
+	    },
+
+	    resolve: function (arg) {
+		this._fn(arg);
+	    }
+	};
+
+	var url = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            .replace('{z}', view.zoom)
+            .replace('{x}', view.tile.column)
+            .replace('{y}', view.tile.row)
+            .replace('{s}', view.subdomain);
+
+	return url;
+    }, {
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-	maxZoom: 18
-    }).addTo(map);
+	maxZoom: 18,
+	subdomains: 'abc'
+    });
+    cacheLayer.addTo(map);
 
     L.control.scale().addTo(map);
 
