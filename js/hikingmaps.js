@@ -312,16 +312,41 @@ function InitializeApplication()
 	positionCircle.addTo(map);
     });
 
+    var cacheDB = {
+	_db: mainDB,
+
+	put: function (key, value) {
+	    var objStore = 'tilecache';
+            var transaction = this._db.transaction([objStore], "readwrite");
+            var request = transaction.objectStore(objStore).put(value, key);
+            request.onsuccess = function (e) { };
+	    request.onerror = function (e) { };
+	},
+
+	get: function (key, deferred) {
+	    var objStore = 'tilecache';
+            var transaction = this._db.transaction([objStore]);
+            var request = transaction.objectStore(objStore).get(key);
+            request.onsuccess = function (e) {
+                var blob = e.target.result;
+		deferred.resolve(blob);
+            };
+            request.onerror = function (e) { };
+	},
+    };
+
     var cacheLayer = new L.TileLayer.Functional(function (view) {
 	var deferred = {
-	    _fn : null,
+	    _fn: null,
 
 	    then: function (fn) {
 		this._fn = fn;
 	    },
 
 	    resolve: function (arg) {
-		this._fn(arg);
+		var imgURL = window.URL.createObjectURL(arg);
+		this._fn(imgURL);
+		window.URL.revokeObjectURL(imgURL);
 	    }
 	};
 
@@ -331,7 +356,21 @@ function InitializeApplication()
             .replace('{y}', view.tile.row)
             .replace('{s}', view.subdomain);
 
-	return url;
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", url, true);
+	xhr.responseType = "blob";
+	xhr.addEventListener("load", function () {
+	    if (xhr.status === 200) {
+		var blob = xhr.response;
+		cacheDB.put(url, blob);
+		deferred.resolve(blob);
+	    } else {
+		cacheDB.get(url, deferred);
+	    }
+	}, false);
+	xhr.send();
+
+	return deferred;
     }, {
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
 	maxZoom: 18,
