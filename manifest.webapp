@@ -1,38 +1,42 @@
 {
-	"version": "1.0",
-	"name": "HikingMaps",
-	"description": "A guide that will help you in your hikes with maps, tracks and GPS position",
-	"launch_path": "/hikingmaps.html",
-	"type": "privileged",
-	"icons":
+    "version": "1.0",
+    "name": "HikingMaps",
+    "description": "A guide that will help you in your hikes with maps, tracks and GPS position",
+    "launch_path": "/hikingmaps.html",
+    "type": "privileged",
+    "icons":
+    {
+	"60": "/hikingguide60.png",
+	"128": "/hikingguide128.png"
+    },
+    "developer":
+    {
+	"name": "Christof Meerwald",
+	"url": "http://cmeerw.org"
+    },
+    "default_locale": "en",
+    "locales":
+    {
+	"en":
 	{
-		"60": "/hikingguide60.png",
-		"128": "/hikingguide128.png"
-	},
-	"developer":
-	{
-		"name": "Christof Meerwald",
-		"url": "http://cmeerw.org"
-	},
-	"default_locale": "en",
-	"locales":
-	{
-		"en":
-		{
-			"name": "HikingMaps",
-			"description": "A guide that will help you in your hikes with maps, tracks and GPS position"
-		}
-	},
-	"permissions":
-	{
-		"geolocation":
-		{
-			"description": "Geolocation necessary to show your position"
-		},
-		"device-storage:sdcard":
-		{
-			"description": "Necessary to read tracks from SD card",
-			"access": "readonly"
-		}
+	    "name": "HikingMaps",
+	    "description": "A guide that will help you in your hikes with maps, tracks and GPS position"
 	}
+    },
+    "permissions":
+    {
+	"geolocation":
+	{
+	    "description": "Geolocation necessary to show your position"
+	},
+	"device-storage:sdcard":
+	{
+	    "description": "Necessary to read tracks from SD card",
+	    "access": "readonly"
+	},
+	"systemXHR":
+	{
+	    "description": "Necessary for remote XMLHttpRequest"
+	},
+    }
 }
