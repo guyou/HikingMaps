@@ -323,7 +323,7 @@ function InitializeApplication()
             var transaction = this._db.transaction(['tilecache', 'tilemeta'],
 						   'readwrite');
             var tileRequest = transaction.objectStore('tilecache').put(value, key);
-	    if (etag !== null) {
+	    if (etag) {
 		var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
 	    }
 	},
@@ -376,7 +376,7 @@ function InitializeApplication()
 	cacheDB.getETag(url, function (arg) {
 	    var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
 	    xhr.open("GET", url, true);
-	    if (arg !== null) {
+	    if (arg) {
 		xhr.setRequestHeader('If-None-Match', arg);
 	    }
 	    xhr.responseType = "blob";

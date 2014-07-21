@@ -37,6 +37,6 @@
 	"systemXHR":
 	{
 	    "description": "Necessary for remote XMLHttpRequest"
-	},
+	}
     }
 }
