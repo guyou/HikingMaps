@@ -79,6 +79,10 @@ var pathTracker = {
 	this._length = 0;
     },
 
+    start: function () {
+	this._curTimestamp = null;
+    },
+
     onPosition: function (ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
 	if ((coords.speed !== 0) && (coords.heading !== null) && !isNaN(coords.heading))
@@ -284,6 +288,7 @@ function PositionUpdatePlayPause()
 	document.getElementById('locateplaypause').classList.remove('play-btn');
 
 	map.removeLayer(positionCircle);
+	pathTracker.start();
 	trackingHandler = navigator.geolocation.watchPosition(
             function(position) { PositionUpdated(position); },
             function(err) { },
@@ -383,6 +388,10 @@ function InitializeApplication()
 
 	positionMarker.addTo(map);
 	positionCircle.addTo(map);
+    });
+
+    map.on('locationerror', function(e) {
+	document.getElementById('locate').dataset.state = '';
     });
 
     var cacheDB = {
