@@ -81,7 +81,7 @@ var pathTracker = {
 
     onPosition: function (ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
-	if ((coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading))
+	if ((coords.speed !== 0) && (coords.heading !== null) && !isNaN(coords.heading))
 	{
 	    if (this._path.length > 0) {
 		var prevEntry = this._path[this._path.length - 1];
@@ -248,8 +248,7 @@ function PositionUpdated(e)
         document.getElementById('path-length-display').textContent = len.toFixed(0);
     }
 
-    if ((e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading))
-    {
+    if (e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading)) {
 	directionIcon.setDirection(e.coords.heading);
     }
 
