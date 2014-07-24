@@ -261,6 +261,7 @@ function PositionUpdated(e)
 /* Function to update position manually */
 function ManualPositionUpdate()
 {
+    document.getElementById('locate').dataset.state = 'refreshing';
     map.locate({setView: true, maxZoom: 16,
 		timeout: 60000, maximumAge: 0, enableHighAccuracy: true});
 };
@@ -375,6 +376,7 @@ function InitializeApplication()
     positionCircle = L.circle([51.505, -0.09], 0);
 
     map.on('locationfound', function(e) {
+	document.getElementById('locate').dataset.state = '';
 	positionMarker.setIcon(positionIcon);
 	positionMarker.setLatLng(e.latlng);
 	positionCircle.setLatLng(e.latlng);

@@ -129,6 +129,13 @@ section[role="region"]
 {
 	background-image: url("images/icons/refresh.png") !important;
 }
+.refresh-btn[data-state="refreshing"] {
+	animation: 0.9s refresh-rotate infinite steps(30);
+}
+@keyframes refresh-rotate {
+	from { transform: rotate(1deg); }
+	to   { transform: rotate(360deg); }
+}
 .delete-btn
 {
 	background-image: url("images/icons/delete.png") !important;
