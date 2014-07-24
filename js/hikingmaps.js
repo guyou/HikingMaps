@@ -31,6 +31,88 @@ var ArrowIcon = L.Icon.extend({
     }
 });
 
+var pathTracker = {
+    _path: [],
+
+    _curTimestamp: null,
+    _curPos: null,
+
+    _moveDuration: 0,
+    _waitDuration: 0,
+
+    _altGain: 0,
+    _altLoss: 0,
+    _length: 0,
+
+    getLength: function () {
+	return this._length;
+    },
+
+    getAltGain: function () {
+	return this._altGain;
+    },
+
+    getAltLoss: function () {
+	return this._altLoss;
+    },
+
+    getPosition: function () {
+	return this._curPos;
+    },
+
+    getMoveDuration: function () {
+	return this._moveDuration;
+    },
+
+    getWaitDuration: function () {
+	return this._waitDuration;
+    },
+
+    reset: function () {
+	this._path = [];
+	this._curTimestamp = null;
+	this._curPos = null;
+	this._moveDuration = 0;
+	this._waitDuration = 0;
+	this._altGain = 0;
+	this._altLoss = 0;
+	this._length = 0;
+    },
+
+    onPosition: function (ts, coords) {
+	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
+	if ((coords.heading != null) && !isNaN(coords.heading))
+	{
+	    if (this._path.length > 0) {
+		var prevEntry = this._path[this._path.length - 1];
+		var prevPos = prevEntry[1];
+
+		this._length += prevPos.distanceTo(this._curPos);
+
+		if (this._curPos.alt !== null) {
+		    var altDiff = this._curPos.alt - prevPos.alt;
+		    if (altDiff >= 0) {
+			this._altGain += altDiff;
+		    } else {
+			this._altLoss -= altDiff;
+		    }
+		}
+	    }
+
+	    this._path.push([ts, this._curPos]);
+	    if (this._curTimestamp !== null) {
+		this._moveDuration += ts - this._curTimestamp;
+	    }
+	} else {
+	    if (this._curTimestamp !== null) {
+		this._waitDuration += ts - this._curTimestamp;
+	    }
+	}
+
+	this._curTimestamp = ts;
+    }
+};
+
 
 /* Global variables */
 
@@ -45,8 +127,6 @@ var positionIcon = new L.Icon.Default();
 var directionIcon = new ArrowIcon();
 var positionMarker = null;
 var positionCircle = null;
-
-var pathlength = 0;
 
 var trackControl = null;
 var trackPolyline = null;
@@ -158,23 +238,23 @@ function NewTrackFileBySelect(evt)
 /* Funtion to draw position when updated */
 function PositionUpdated(e)
 {
-    trackPolyline.addLatLng([e.coords.latitude, e.coords.longitude]);
-    map.panTo([e.coords.latitude, e.coords.longitude]);
+    pathTracker.onPosition(e.timestamp, e.coords);
 
-    var latlngs = trackPolyline.getLatLngs();
-    if (latlngs.length >= 2)
-    {
-        pathlength += latlngs[latlngs.length - 2].distanceTo(latlngs[latlngs.length - 1]);
-        document.getElementById('path-length-display').textContent=pathlength.toFixed(0);;
+    trackPolyline.addLatLng(pathTracker.getPosition());
+    map.panTo(pathTracker.getPosition());
+
+    var len = pathTracker.getLength();
+    if (len > 0) {
+        document.getElementById('path-length-display').textContent = l.toFixed(0);
     }
 
-    if (e.coords.heading!=null && !isNaN(e.coords.heading))
+    if ((e.coords.heading !== null) && !isNaN(e.coords.heading))
     {
 	directionIcon.setDirection(e.coords.heading);
     }
 
     positionMarker.setIcon(directionIcon);
-    positionMarker.setLatLng([e.coords.latitude, e.coords.longitude]);
+    positionMarker.setLatLng(pathTracker.getPosition());
     positionMarker.addTo(map);
 };
 
@@ -221,7 +301,7 @@ function WayDelete()
     map.removeLayer(positionMarker);
     map.removeLayer(positionCircle);
 
-    pathlength = 0;
+    pathTracker.reset();
     document.getElementById('path-length-display').textContent='';
     map.removeLayer(trackPolyline);
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
@@ -235,13 +315,9 @@ function ClearCache()
 function OpenSettings()
 {
     var container=document.getElementById('container');
-    setTimeout(
-	function()
-	{
-	    container.classList.add('opensettings');
-	},
-	300
-    );
+    setTimeout(function() {
+	container.classList.add('opensettings');
+    }, 300);
 };
 
 /* Function to close the Settings screen */
@@ -257,21 +333,13 @@ function EndSettings()
     }
 
     container=document.getElementById('container');
-    setTimeout(
-	function()
-	{
-	    container.classList.add('closesettings');
-	    setTimeout(
-		function()
-		{
-		    container.classList.remove('opensettings')
-		    container.classList.remove('closesettings');
-		},
-		500
-	    );
-	},
-	300
-    );
+    setTimeout(function() {
+	container.classList.add('closesettings');
+	setTimeout(function() {
+	    container.classList.remove('opensettings')
+	    container.classList.remove('closesettings');
+	}, 500);
+    }, 300);
 };
 
 /* Wait for localization to be loaded */
