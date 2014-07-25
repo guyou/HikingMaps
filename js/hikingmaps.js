@@ -252,7 +252,7 @@ function PositionUpdated(e)
         document.getElementById('path-length-display').textContent = len.toFixed(0);
     }
 
-    if (e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading)) {
+    if ((e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading)) {
 	directionIcon.setDirection(e.coords.heading);
     }
 
