@@ -300,7 +300,6 @@ function PositionUpdatePlayPause()
     };
 };
 
-/* Delete recorded way */
 function WayDelete()
 {
     map.removeLayer(positionMarker);
@@ -312,11 +311,6 @@ function WayDelete()
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 };
 
-function ClearCache()
-{
-}
-
-/* Function to open the Settings screen */
 function OpenSettings()
 {
     var container=document.getElementById('container');
@@ -325,18 +319,8 @@ function OpenSettings()
     }, 300);
 };
 
-/* Function to close the Settings screen */
 function EndSettings()
 {
-    if (document.getElementById("enablecache").checked)
-    {
-	//cacheWrite.activate();
-    }
-    else
-    {
-	//cacheWrite.deactivate();
-    }
-
     container=document.getElementById('container');
     setTimeout(function() {
 	container.classList.add('closesettings');
@@ -347,23 +331,17 @@ function EndSettings()
     }, 300);
 };
 
-/* Wait for localization to be loaded */
 function WaitForLocalizationToLoad()
 {
-    /* Activate timer */
     localizationchecktimer=setInterval(CheckLocalizationLoaded,100);
 };
 
-/* Check if localization is loaded */
 function CheckLocalizationLoaded()
 {
-    /* Check a string */
     if (mozL10n.get('hiking-maps-title')!='')
     {
-	/* Stop timer */
 	clearInterval(localizationchecktimer);
 
-	/* Initialize the application */
 	InitializeDatabase(function (db)
 			   {
 			       InitializeApplication();
@@ -484,12 +462,11 @@ function InitializeApplication()
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 
     /* Add events to buttons */
-    document.getElementById('locate').addEventListener('click',ManualPositionUpdate,false);
-    document.getElementById('locateplaypause').addEventListener('click',PositionUpdatePlayPause,false);
-    document.getElementById('waydelete').addEventListener('click',WayDelete,false);
-    document.getElementById("menubutton").addEventListener('click',OpenSettings,false);
-    document.getElementById("settingsokbutton").addEventListener('click',EndSettings,false);
-    document.getElementById("clearcache").addEventListener('click',ClearCache,false);
+    document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
+    document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
+    document.getElementById('waydelete').addEventListener('click', WayDelete, false);
+    document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
+    document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
 
     /* Define correct method for track file selection depending on system */
     if (firefoxOS)

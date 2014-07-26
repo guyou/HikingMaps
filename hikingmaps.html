@@ -1,184 +1,113 @@
 <!DOCTYPE HTML>
 <html manifest="offline.appcache">
-
-	<!-- HTML header -->
-
-	<head>
-
-		<!-- Title -->
-
-		<title data-l10n-id="hiking-maps-title">Hiking Maps</title>
-
-		<!-- Localization files -->
-
-		<link rel="resource" type="application/l10n" href="locales/locales.ini">
-
-		<!-- FirefoxOS general styles -->
-
-		<link rel="stylesheet" type="text/css" href="shared/style/action_menu.css">
-		<link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-		<link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-		<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-		<link rel="stylesheet" type="text/css" href="shared/style/switches.css">
-		<link rel="stylesheet" type="text/css" href="shared/style_unstable/lists.css">
-
-		<!-- Localization code -->
-
-		<script type="text/javascript" src="shared/js/l10n.js"></script>
-
-		<!-- leaflet javascript code -->
-
-		<script type="text/javascript" src="js/leaflet.js"></script>
-		<script type="text/javascript" src="js/gpx.js"></script>
-		<script type="text/javascript" src="js/leaflet.functionaltilelayer.js"></script>
-
-		<!-- Application own styles -->
-
-		<link rel="stylesheet" type="text/css" href="css/leaflet.css">
-		<link rel="stylesheet" type="text/css" href="css/hikingmaps.css">
-
-	</head>
-
-	<!-- HTML body -->
-
-	<body id="body">
-
-		<!-- Application javascript code -->
-
-		<script type="text/javascript" src="js/hikingmaps.js"></script>
-
-		<!-- Container for all screens -->
-
-		<div id="container">
-
-			<!-- Main screen -->
-
-			<section id="mainwindow" role="region" data-position="current">
-
-				<!-- Header -->
-
-				<header>
-
-					<!-- Button for settings -->
-
-					<button id="menubutton"><span data-l10n-id="settings-button-text" class="icon icon-menu">Settings</span></button>
-
-					<!-- Heading -->
-
-					<h1 data-l10n-id="main-heading">Hiking Maps</h1>
-
-				</header>
-
-				<!-- Map -->
-
-				<div id="map" class="mapa">
-
-					<!-- Track length display (over map) -->
-					<div id="track-length-display"></div>
-					<!-- Made path display (over map) -->
-					<div id="path-length-display"></div>
-
-					<!-- Map buttons toolbar (over map) -->
-
-					<div id="bottom-toolbar" class="bottom-toolbar">
-
-						<!-- Way delete button -->
-
-						<button id="waydelete" class="delete-btn bottom-btn"></button>
-
-						<!-- Refresh pause & play button -->
-
-						<button id="locateplaypause" class="play-btn bottom-btn"></button>
-
-						<!-- Manual refresh button -->
-
-						<button id="locate" class="refresh-btn bottom-btn"></button>
-
-					</div>
-
-				</div>
-
-			</section>
-
-			<!-- Settings screen -->
-
-			<section id="settings" class="skin-dark" role="region" data-position="left">
-
-				<!-- Header -->
-
-				<header>
-
-					<!-- Settings OK button -->
-
-					<menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-ok-text">OK</button></menu>
-
-					<!-- Heading -->
-
-					<h1 data-l10n-id="settings-heading">Settings</h1>
-
-				</header>
-
-				<!-- Track file -->
-
-				<section data-type="list">
-
-					<!-- Label -->
-
-					<header><label for="trackfile" data-l10n-id="settings-track-file-text">Track file</label></header>
-
-					<!-- File input -->
-
-					<ul>
-						<li id="trackfileitem">
-							<p>
-								<input type="file" placeholder="GPX, KML" id="trackfile" name="files[]" />
-							</p>
-						</li>
-						<li id="trackfileselectitem">
-							<p>
-								<select id="trackfileselect">
-									<option></option>
-								</select>
-							</p>
-						</li>
-					</ul>
-
-				</section>
-
-				<!-- Offline Storage -->
-
-				<section data-type="list">
-
-					<!-- Label -->
-
-					<header><label for="caching" data-l10n-id="settings-caching-text">Offline Storage</label></header>
-
-					<ul>
-
-						<!-- Enable Offline Storage -->
-
-						<li>
-							<p>
-								<label>
-									<input id="enablecache" name="enablecache" type="checkbox">
-									<span></span>
-								</label>
-								<span data-l10n-id="settings-cache-enable-text">Enable</span>
-								<label>
-									<input type="button" id="clearcache" name="clearcache" value="Clear">
-									<span></span>
-								</label>
-							</p>
-						</li>
-
-					</ul>
-
-				</section>
-
-			</section>
-
+  <head>
+	<title data-l10n-id="hiking-maps-title">Hiking Maps</title>
+
+	<link rel="resource" type="application/l10n" href="locales/locales.ini">
+
+	<link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/icons.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/headers.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/lists.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+
+	<script type="text/javascript" src="shared/js/l10n.js"></script>
+
+	<link rel="stylesheet" type="text/css" href="css/leaflet.css">
+	<link rel="stylesheet" type="text/css" href="css/hikingmaps.css">
+
+	<script type="text/javascript" src="js/leaflet.js"></script>
+	<script type="text/javascript" src="js/gpx.js"></script>
+	<script type="text/javascript" src="js/leaflet.functionaltilelayer.js"></script>
+  </head>
+
+  <body id="body">
+	<script type="text/javascript" src="js/hikingmaps.js"></script>
+	<div id="container">
+	  <section id="mainwindow" role="region" data-position="current">
+		<header>
+		  <button id="menubutton"><span data-l10n-id="settings-button-text" class="icon icon-menu">Settings</span></button>
+		  <h1 data-l10n-id="main-heading">Hiking Maps</h1>
+		</header>
+
+		<div id="map" class="mapa">
+		  <div id="track-length-display"></div>
+		  <div id="path-length-display"></div>
+
+		  <div id="bottom-toolbar" class="bottom-toolbar">
+			<button id="waydelete" class="delete-btn bottom-btn"></button>
+			<button id="locateplaypause" class="play-btn bottom-btn"></button>
+			<button id="locate" class="refresh-btn bottom-btn"></button>
+		  </div>
 		</div>
+	  </section>
 
-	</body>
+	  <section id="settings" class="skin-dark" role="region" data-position="left">
+		<header>
+		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-ok-text">OK</button></menu>
+		  <h1 data-l10n-id="settings-heading">Settings</h1>
+		</header>
 
+		<section data-type="list">
+		  <header><h2 data-l10n-id="settings-track-file-text">Track file</h2></header>
+
+		  <ul>
+			<li id="trackfileitem">
+			  <p>
+				<input type="file" placeholder="GPX" id="trackfile" name="files[]" />
+			  </p>
+			</li>
+			<li id="trackfileselectitem">
+			  <p>
+				<select id="trackfileselect">
+				  <option></option>
+				</select>
+			  </p>
+			</li>
+		  </ul>
+
+		</section>
+
+		<section data-type="list">
+		  <header><h2 data-l10-id="settings-units">Units</h2></header>
+
+		  <section data-type="list">
+			<ul>
+			  <li>
+				<aside class="pack-end">
+				  <label class="pack-switch">
+					<input id="settings-units" type="checkbox" checked>
+					<span></span>
+				  </label>
+				</aside>
+				<p>Metric</p>
+			  </li>
+			</ul>
+		  </section>
+		</section>
+
+		<section data-type="list">
+		  <header><h2 data-l10-id="settings-map-data">Map Data</h2></header>
+
+		  <section data-type="list">
+			<ul>
+			  <li>
+				<aside class="pack-end">
+				  <label class="pack-switch">
+					<input id="settings-offline" type="checkbox">
+					<span></span>
+				  </label>
+				</aside>
+				<p>Offline</p>
+			  </li>
+			  <li>
+				<button id="clear-cache">Clear Cache</button>
+			  </li>
+			</ul>
+		  </section>
+		</section>
+	  </section>
+	</div>
+  </body>
 </html>
