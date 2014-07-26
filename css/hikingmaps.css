@@ -1,223 +1,194 @@
-/* HTML element font size depends on screen size, then other sizes are relative to that (REMs) */
-
 html
 {
-	font-size: 16px;
+    font-size: 10px;
 }
-/* small mobile */
-@media screen and (max-width: 500px)
-{
-	html
-	{
-		font-size: 12px;
-	}
-}
-
-/* Map style */
 
 .mapa
 {
-	width: 100%;
-	height: calc(100% - 5rem);
+    width: 100%;
+    height: calc(100% - 5rem);
 }
-
-/* Window general styles */
 
 html, body
 {
-	margin: 0;
-	padding: 0;
-	background-color: #fff;
-	height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+    height: 100%;
 }
 body
 {
-	background: none;
-	position: relative;
+    background: none;
+    position: relative;
 }
-
-/* Screens common styles */
 
 section[role="region"]
 {
-	margin-bottom: 1.5rem;
-	position: relative;
+    margin-bottom: 1.5rem;
+    position: relative;
 }
 #container
 {
-	height: 100%;
+    height: 100%;
 }
-
-/* Main screen style */
 
 #container [data-position="current"]
 {
-	height: 100%;
+    height: 100%;
 }
-
-/* Settings screen style */
 
 #container [data-position="left"]
 {
-	transform: translateX(-100%);
-	z-index: 10;
-	position: absolute;
-	top: 0;
-	width: 100%;
+    transform: translateX(-100%);
+    z-index: 10;
+    position: absolute;
+    top: 0;
+    width: 100%;
 }
-
-/* Length display styles */
 
 #track-length-display
 {
-	position: absolute;
-	left: 1rem;
-	top: 1rem;
-	color: #f00;
-	font: 2rem "MozTT", Sans-serif;
-	background-color: rgba(0, 0, 0, 0);
-	z-index: 1004;
+    position: absolute;
+    left: 1rem;
+    top: 1rem;
+    color: #f00;
+    font: 2rem "MozTT", Sans-serif;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 1004;
 }
 #path-length-display
 {
-	position: absolute;
-	right: 1rem;
-	top: 1rem;
-	color: #00f;
-	font: 2rem "MozTT", Sans-serif;
-	background-color: rgba(0, 0, 0, 0);
-	z-index: 1004;
+    position: absolute;
+    right: 1rem;
+    top: 1rem;
+    color: #00f;
+    font: 2rem "MozTT", Sans-serif;
+    background-color: rgba(0, 0, 0, 0);
+    z-index: 1004;
 }
-
-/* Map toolbar styles */
 
 .bottom-toolbar
 {
-	position: absolute;
-	left: 0;
-	bottom: 0;
-	width: 100%;
-	height: 4rem;
-	background-color: rgba(0, 0, 0, 0.75);
-	z-index: 1004;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 4rem;
+    background-color: rgba(0, 0, 0, 0.75);
+    z-index: 1004;
 }
 .invisible
 {
-	display: none;
+    display: none;
 }
-
-/* Map toolbar buttons styles */
 
 .bottom-btn
 {
-	height: 4rem;
-	border: none;
-	width: 6rem;
-	background: transparent no-repeat center / 3rem !important;
-	margin: 0 calc((100% - 25rem) / 8);
+    height: 4rem;
+    border: none;
+    width: 6rem;
+    background: transparent no-repeat center / 3rem !important;
+    margin: 0 calc((100% - 25rem) / 8);
 }
 .bottom-btn.disabled
 {
-	opacity: 0.3;
-	pointer-events: none;
+    opacity: 0.3;
+    pointer-events: none;
 }
 .bottom-btn:active
 {
-	background-color: #008AAA !important;
+    background-color: #008AAA !important;
 }
 .refresh-btn
 {
-	background-image: url("images/icons/refresh.png") !important;
+    background-image: url("images/icons/refresh.png") !important;
 }
 .refresh-btn[data-state="refreshing"] {
-	animation: 0.9s refresh-rotate infinite steps(30);
+    animation: 0.9s refresh-rotate infinite steps(30);
 }
 @keyframes refresh-rotate {
-	from { transform: rotate(1deg); }
-	to   { transform: rotate(360deg); }
+    from { transform: rotate(1deg); }
+    to   { transform: rotate(360deg); }
 }
 .delete-btn
 {
-	background-image: url("images/icons/delete.png") !important;
+    background-image: url("images/icons/delete.png") !important;
 }
 .pause-btn
 {
-	background-image: url("images/icons/pause.png") !important;
+    background-image: url("images/icons/pause.png") !important;
 }
 .play-btn
 {
-	background-image: url("images/icons/play.png") !important;
+    background-image: url("images/icons/play.png") !important;
 }
-
-/* Screens scroll animations */
 
 .opensettings #mainwindow
 {
-	animation: 0.4s ease 0s normal forwards 1 currentToRight;
+    animation: 0.4s ease 0s normal forwards 1 currentToRight;
 }
 .opensettings #settings
 {
-	animation: 0.4s ease 0s normal forwards 1 leftToCurrent;
+    animation: 0.4s ease 0s normal forwards 1 leftToCurrent;
 }
 .closesettings #mainwindow
 {
-	animation: 0.4s ease 0s normal forwards 1 rightToCurrent;
+    animation: 0.4s ease 0s normal forwards 1 rightToCurrent;
 }
 .closesettings #settings
 {
-	animation: 0.4s ease 0s normal forwards 1 currentToLeft;
+    animation: 0.4s ease 0s normal forwards 1 currentToLeft;
 }
 @keyframes currentToLeft
 {
-	0% { transform: translateX(0); }
-	100% { transform: translateX(-100%); }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
 }
 @keyframes rightToCurrent
 {
-	0% { transform: translateX(100%); }
-	100% { transform: translateX(0); }
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0); }
 }
 @keyframes leftToCurrent
 {
-	0% { transform: translateX(-100%); }
-	100% { transform: translateX(0); }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0); }
 }
 @keyframes currentToRight
 {
-	0% { transform: translateX(0); }
-	100% { transform: translateX(100%); }
+    0% { transform: translateX(0); }
+    100% { transform: translateX(100%); }
 }
-
-/* Dialog animations */
 
 .opendialog
 {
-	animation: 0.2s forwards fadeIn;
+    animation: 0.2s forwards fadeIn;
 }
 @keyframes fadeIn
 {
-	0% { opacity: 0; }
-	100% { opacity: 1; }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
 .closedialog
 {
-	animation: 0.2s forwards fadeOut;
+    animation: 0.2s forwards fadeOut;
 }
 @keyframes fadeOut
 {
-	0% { opacity: 1; }
-	100% { opacity: 0; }
+    0% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
-.arrow-icon {
-	width: 0; 
-	height: 0; 
-	border-left: 12px solid transparent;
-	border-right: 12px solid transparent;
-	border-bottom: 36px solid green;
-	opacity: 0.6;
-	transform-origin: 12px 24px;
-	position: relative;
-	left: -6px;
-	top: -16px;
+.arrow-icon
+{
+    width: 0; 
+    height: 0; 
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 36px solid green;
+    opacity: 0.6;
+    transform-origin: 12px 24px;
+    position: relative;
+    left: -6px;
+    top: -16px;
 }
