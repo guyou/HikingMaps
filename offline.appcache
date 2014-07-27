@@ -19,6 +19,10 @@ CACHE MANIFEST
 /css/leaflet.css
 /css/images/icons/checkbox.png
 /css/images/icons/checkbox@2x.png
+/css/images/icons/config.png
+/css/images/icons/config@1.5x.png
+/css/images/icons/config@2x.png
+/css/images/icons/config@2.25x.png
 /css/images/icons/delete.png
 /css/images/icons/delete@2x.png
 /css/images/icons/pause.png

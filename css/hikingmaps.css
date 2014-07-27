@@ -46,6 +46,16 @@ section[role="region"]
     width: 100%;
 }
 
+body[role="application"] section[role="region"] > header .icon.config {
+  background-image: url(images/icons/config.png);
+  background-size: 3rem;
+}
+
+body[role="application"] section[role="region"] > header button {
+  text-shadow: none;
+  font-weight: normal;
+}
+
 #track-length-display
 {
     position: absolute;

@@ -25,9 +25,11 @@
   <body id="body" role="application">
 	<script type="text/javascript" src="js/hikingmaps.js"></script>
 	<div id="container">
-	  <section id="mainwindow" role="region" data-position="current">
+	  <section id="mainwindow" class="window skin-organic" role="region" data-position="current">
 		<header>
-		  <button id="menubutton"><span data-l10n-id="settings-button-text" class="icon icon-menu">Settings</span></button>
+          <menu type="toolbar">
+			<button id="menubutton" class="settings-button"><span class="icon config">Configuration</span></button>
+          </menu>
 		  <h1 data-l10n-id="main-heading">Hiking Maps</h1>
 		</header>
 
@@ -43,9 +45,9 @@
 		</div>
 	  </section>
 
-	  <section id="settings" class="skin-dark" role="region" data-position="left">
+	  <section id="settings" class="window skin-organic" role="region" data-position="left">
 		<header>
-		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-ok-text">OK</button></menu>
+		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-done-text">Done</button></menu>
 		  <h1 data-l10n-id="settings-heading">Settings</h1>
 		</header>
 
@@ -80,7 +82,7 @@
 					<span></span>
 				  </label>
 				</aside>
-				<p>Metric</p>
+				<p data-l10-id="settings-units-metric">Metric</p>
 			  </li>
 			</ul>
 		  </section>
@@ -98,10 +100,10 @@
 					<span></span>
 				  </label>
 				</aside>
-				<p>Offline</p>
+				<p data-l10-id="settings-data-offline">Offline</p>
 			  </li>
 			  <li>
-				<button id="clear-cache">Clear Cache</button>
+				<button id="clear-cache" data-l10-id="settings-clear-cache">Clear Cache</button>
 			  </li>
 			</ul>
 		  </section>
