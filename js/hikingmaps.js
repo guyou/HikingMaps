@@ -118,14 +118,13 @@ var pathTracker = {
 };
 
 
-/* Global variables */
-
 var mainDB;
 var map;
 var tracks;
 var localizationchecktimer;
 var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var mozL10n=navigator.mozL10n;
+var offline=false;
 
 var positionIcon = new L.Icon.Default();
 var directionIcon = new ArrowIcon();
@@ -136,13 +135,12 @@ var trackControl = null;
 var trackPolyline = null;
 var trackingHandler = null;
 
-document.getElementById("body").onload = WaitForLocalizationToLoad;
+document.getElementById('body').onload = WaitForLocalizationToLoad;
 
 
-/* Function to initialize the database */
 function InitializeDatabase(cb)
 {
-    var request = window.indexedDB.open("HikingMaps", 1);
+    var request = window.indexedDB.open('HikingMaps', 1);
     request.onerror = function(event)
     {
 	cb(null);
@@ -156,13 +154,13 @@ function InitializeDatabase(cb)
     {
 	mainDB = request.result;
 	var ver = mainDB.version || 0; // version is empty string for a new DB
-	if (!mainDB.objectStoreNames.contains("tilecache"))
+	if (!mainDB.objectStoreNames.contains('tilecache'))
 	{
-	    var tilecacheStore = mainDB.createObjectStore("tilecache");
+	    var tilecacheStore = mainDB.createObjectStore('tilecache');
 	}
-	if (!mainDB.objectStoreNames.contains("tilemeta"))
+	if (!mainDB.objectStoreNames.contains('tilemeta'))
 	{
-	    var tilemetaStore = mainDB.createObjectStore("tilemeta");
+	    var tilemetaStore = mainDB.createObjectStore('tilemeta');
 	}
 	mainDB.onversionchange = function(event)
 	{
@@ -173,73 +171,55 @@ function InitializeDatabase(cb)
     };
 }
 
-/* Function to select a track file from the SD card */
 function UpdateTrackFiles()
 {
-    var storage=navigator.getDeviceStorage("sdcard");
-    if (storage)
-    {
-	var trackscursor=storage.enumerate("tracks");
-	tracks=[];
-	trackscursor.onerror=function()
-	{
-	    console.error("Error in Device Storage API",trackscursor.error.name);
+    var storage = navigator.getDeviceStorage('sdcard');
+    if (storage) {
+	var trackscursor = storage.enumerate('tracks');
+	tracks = [];
+	trackscursor.onerror = function() {
+	    console.error('Error in Device Storage API',
+			  trackscursor.error.name);
 	};
-	trackscursor.onsuccess=function()
-	{
-	    if (!trackscursor.result)
-	    {
-		for (trackindex in tracks)
-		{
-		    document.getElementById('trackfileselect').options[document.getElementById('trackfileselect').options.length]=new Option(tracks[trackindex].name,trackindex);
-		};
-		return;
-	    };
-	    var file=trackscursor.result;
-	    if (file.name.split('.').pop()=="gpx")
-	    {
-		tracks.push(file);
-	    };
-	    trackscursor.continue();
-	    return;
+	trackscursor.onsuccess = function() {
+	    if (!trackscursor.result) {
+		for (trackindex in tracks) {
+		    document.getElementById('trackfileselect').options[document.getElementById('trackfileselect').options.length] = new Option(tracks[trackindex].name.split('/').pop(), trackindex);
+		}
+	    } else {
+	    	var file=trackscursor.result;
+		if (file.name.split('.').pop() == 'gpx') {
+		    tracks.push(file);
+		}
+		trackscursor.continue();
+	    }
 	};
-    };
+    }
     return false;
-};
+}
 
-function NewTrackFile(f)
+function ClearTrack()
 {
-    if (trackControl != null)
-    {
+    if (trackControl !== null) {
 	map.removeLayer(trackControl);
 	trackControl = null;
     }
+}
 
-    reader=new FileReader();
-    reader.onload=function(e)
-    {
+function NewTrackFile(f)
+{
+    ClearTrack();
+
+    reader = new FileReader();
+    reader.onload = function(e) {
 	trackControl = new L.GPX(e.target.result, {async: true}).on(
 	    'loaded', function(e) {
-		document.getElementById('track-length-display').textContent=trackControl.get_distance().toFixed(0);
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
     };
     reader.readAsText(f);
-};
-
-/* Function to open track file and launch recreation of track layer in a normal navigator (input type="file") */
-function NewTrackFileByInput(evt)
-{
-    NewTrackFile(evt.target.files[0]);
 }
 
-/* Function to open track file and launch recreation of track layer in FirefoxOS (select) */
-function NewTrackFileBySelect(evt)
-{
-    NewTrackFile(tracks[document.getElementById('trackfileselect').value]);
-};
-
-/* Funtion to draw position when updated */
 function PositionUpdated(e)
 {
     pathTracker.onPosition(e.timestamp, e.coords);
@@ -259,31 +239,26 @@ function PositionUpdated(e)
     positionMarker.setIcon(directionIcon);
     positionMarker.setLatLng(pathTracker.getPosition());
     positionMarker.addTo(map);
-};
+}
 
-/* Function to update position manually */
 function ManualPositionUpdate()
 {
     document.getElementById('locate').dataset.state = 'refreshing';
     map.locate({setView: true, maxZoom: 16,
 		timeout: 60000, maximumAge: 0, enableHighAccuracy: true});
-};
+}
 
-/* Play or pause automatic position update */
 function PositionUpdatePlayPause()
 {
-    if (document.getElementById('locateplaypause').classList.contains('pause-btn'))
-    {
-	document.getElementById("locate").classList.remove('invisible');
+    if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
+	document.getElementById('locate').classList.remove('invisible');
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
-    }
-    else
-    {
-	document.getElementById("locate").classList.add('invisible');
+    } else {
+	document.getElementById('locate').classList.add('invisible');
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
 
@@ -297,8 +272,8 @@ function PositionUpdatePlayPause()
 		timeout: 60000,
 		maximumAge: 0
             });
-    };
-};
+    }
+}
 
 function WayDelete()
 {
@@ -309,19 +284,19 @@ function WayDelete()
     document.getElementById('path-length-display').textContent='';
     map.removeLayer(trackPolyline);
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
-};
+}
 
 function OpenSettings()
 {
-    var container=document.getElementById('container');
+    var container = document.getElementById('container');
     setTimeout(function() {
 	container.classList.add('opensettings');
     }, 300);
-};
+}
 
 function EndSettings()
 {
-    container=document.getElementById('container');
+    var container = document.getElementById('container');
     setTimeout(function() {
 	container.classList.add('closesettings');
 	setTimeout(function() {
@@ -329,30 +304,29 @@ function EndSettings()
 	    container.classList.remove('closesettings');
 	}, 500);
     }, 300);
-};
+
+    offline = document.getElementById('settings-offline').checked;
+}
 
 function WaitForLocalizationToLoad()
 {
     localizationchecktimer=setInterval(CheckLocalizationLoaded,100);
-};
+}
 
 function CheckLocalizationLoaded()
 {
-    if (mozL10n.get('hiking-maps-title')!='')
-    {
+    if (mozL10n.get('hiking-maps-title') != '') {
 	clearInterval(localizationchecktimer);
 
 	InitializeDatabase(function (db)
 			   {
 			       InitializeApplication();
 			   });
-    };
-};
+    }
+}
 
-/* Application initialization */
 function InitializeApplication()
 {
-    /* Create map */
     map = L.map('map').setView([51.505, -0.09], 13);
     positionMarker = L.marker([51.505, -0.09], { icon : positionIcon });
     positionCircle = L.circle([51.505, -0.09], 0);
@@ -429,26 +403,33 @@ function InitializeApplication()
 	    }
 	};
 
-	cacheDB.getETag(url, function (arg) {
-	    var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
-	    xhr.open("GET", url, true);
-	    if (arg) {
-		xhr.setRequestHeader('If-None-Match', arg);
-	    }
-	    xhr.responseType = "blob";
-	    xhr.addEventListener("load", function () {
-		if (xhr.status === 200) {
-		    var blob = xhr.response;
-		    cacheDB.put(url, blob, xhr.getResponseHeader('ETag'));
-		    deferred.resolve(blob);
-		} else {
-		    cacheDB.get(url, function (arg) {
-			deferred.resolve(arg);
-		    });
+	if (offline) {
+	    cacheDB.get(url, function (arg) {
+		deferred.resolve(arg);
+	    });
+	} else {
+	    cacheDB.getETag(url, function (arg) {
+		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
+		xhr.open('GET', url, true);
+		if (arg) {
+		    xhr.setRequestHeader('If-None-Match', arg);
 		}
-	    }, false);
-	    xhr.send();
-	});
+		xhr.responseType = 'blob';
+		xhr.addEventListener('load', function () {
+		    if (xhr.status === 200) {
+			var blob = xhr.response;
+			cacheDB.put(url, blob, xhr.getResponseHeader('ETag'));
+			deferred.resolve(blob);
+		    } else {
+			cacheDB.get(url, function (arg) {
+			    deferred.resolve(arg);
+			});
+		    }
+		}, false);
+		xhr.send();
+	    });
+	}
+
 	return deferred;
     }, {
 	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
@@ -461,23 +442,29 @@ function InitializeApplication()
 
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 
-    /* Add events to buttons */
     document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
     document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
     document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
     document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
 
-    /* Define correct method for track file selection depending on system */
-    if (firefoxOS)
-    {
+    if (firefoxOS) {
 	UpdateTrackFiles();
-	document.getElementById('trackfileselect').addEventListener('change',NewTrackFileBySelect,false);
+	document.getElementById('trackfileselect')
+	    .addEventListener('change', function (e) {
+		var idx = document.getElementById('trackfileselect').value;
+		if (idx == -1) {
+		    ClearTrack();
+		} else {
+		    NewTrackFile(tracks[idx]);
+		}
+	    }, false);
 	document.getElementById('trackfileitem').parentNode.removeChild(document.getElementById('trackfileitem'));
-    }
-    else
-    {
-	document.getElementById('trackfile').addEventListener('change',NewTrackFileByInput,false);
+    } else {
+	document.getElementById('trackfile')
+	    .addEventListener('change', function (e) {
+		NewTrackFile(e.target.files[0]);
+	    }, false);
 	document.getElementById('trackfileselectitem').parentNode.removeChild(document.getElementById('trackfileselectitem'));
-    };
-};
+    }
+}

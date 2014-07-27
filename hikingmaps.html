@@ -1,6 +1,8 @@
 <!DOCTYPE HTML>
 <html manifest="offline.appcache">
   <head>
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
+    <meta charset="utf-8">
 	<title data-l10n-id="hiking-maps-title">Hiking Maps</title>
 
 	<link rel="resource" type="application/l10n" href="locales/locales.ini">
@@ -34,7 +36,6 @@
 		</header>
 
 		<div id="map" class="mapa">
-		  <div id="track-length-display"></div>
 		  <div id="path-length-display"></div>
 
 		  <div id="bottom-toolbar" class="bottom-toolbar">
@@ -54,20 +55,22 @@
 		<section data-type="list">
 		  <header><h2 data-l10n-id="settings-track-file-text">Track file</h2></header>
 
-		  <ul>
-			<li id="trackfileitem">
-			  <p>
-				<input type="file" placeholder="GPX" id="trackfile" name="files[]" />
-			  </p>
-			</li>
-			<li id="trackfileselectitem">
-			  <p>
-				<select id="trackfileselect">
-				  <option></option>
+		  <section data-type="list">
+			<ul>
+			  <li id="trackfileitem">
+				<p>
+				  <input type="file" placeholder="GPX" id="trackfile" name="files[]" />
+				</p>
+			  </li>
+			  <li id="trackfileselectitem">
+				<p>
+				  <select id="trackfileselect">
+					<option value="-1" data-l10-id="settings-file-none">&lt;None&gt;</option>
 				</select>
-			  </p>
-			</li>
-		  </ul>
+				</p>
+			  </li>
+			</ul>
+		  </section>
 		</section>
 
 		<section data-type="list">
@@ -78,7 +81,7 @@
 			  <li>
 				<aside class="pack-end">
 				  <label class="pack-switch">
-					<input id="settings-units" type="checkbox" checked>
+					<input id="settings-units" disabled="true" type="checkbox" checked>
 					<span></span>
 				  </label>
 				</aside>
@@ -94,6 +97,14 @@
 		  <section data-type="list">
 			<ul>
 			  <li>
+				<p>
+				  <select id="maplayerselect">
+					<option value="0" data-l10-id="settings-layer-osm">OpenStreetMap</option>
+				  </select>
+				</p>
+			  </li>
+
+			  <li>
 				<aside class="pack-end">
 				  <label class="pack-switch">
 					<input id="settings-offline" type="checkbox">
@@ -103,7 +114,7 @@
 				<p data-l10-id="settings-data-offline">Offline</p>
 			  </li>
 			  <li>
-				<button id="clear-cache" data-l10-id="settings-clear-cache">Clear Cache</button>
+				<button id="clear-cache" disabled="true" data-l10-id="settings-clear-cache">Clear Cache</button>
 			  </li>
 			</ul>
 		  </section>

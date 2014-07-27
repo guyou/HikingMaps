@@ -56,16 +56,6 @@ body[role="application"] section[role="region"] > header button {
   font-weight: normal;
 }
 
-#track-length-display
-{
-    position: absolute;
-    left: 1rem;
-    top: 1rem;
-    color: #f00;
-    font: 2rem "MozTT", Sans-serif;
-    background-color: rgba(0, 0, 0, 0);
-    z-index: 1004;
-}
 #path-length-display
 {
     position: absolute;
