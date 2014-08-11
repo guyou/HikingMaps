@@ -288,23 +288,12 @@ function WayDelete()
 
 function OpenSettings()
 {
-    var container = document.getElementById('container');
-    setTimeout(function() {
-	container.classList.add('opensettings');
-    }, 300);
+    delete document.getElementById('settings-view').dataset.viewport;
 }
 
 function EndSettings()
 {
-    var container = document.getElementById('container');
-    setTimeout(function() {
-	container.classList.add('closesettings');
-	setTimeout(function() {
-	    container.classList.remove('opensettings')
-	    container.classList.remove('closesettings');
-	}, 500);
-    }, 300);
-
+    document.getElementById('settings-view').dataset.viewport = 'bottom';
     offline = document.getElementById('settings-offline').checked;
 }
 

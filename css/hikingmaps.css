@@ -1,6 +1,73 @@
-html
-{
+/* GENERAL */
+* {
+    margin: 0;
+    padding: 0;
+}
+
+a:focus,
+a::-moz-focus-inner {
+    outline: none;
+    border: none;
+}
+
+html {
+    height: 100%;
     font-size: 10px;
+    color: #000;
+}
+
+body {
+    height: 100%;
+    background-color: #000;
+}
+
+/* WINDOW & VIEWS */
+.window, .view {
+    height: 100%;
+    position: fixed;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 5;
+    overflow: hidden;
+}
+
+.window {
+    opacity: 1.0;
+    background: #f4f4f4;
+    transition: opacity ease 0.2s;
+}
+
+.view {
+    top: 9.3rem;
+    background: #f4f4f4;
+    transform: translate(0, 0);
+    transition: transform 0.5s ease,
+    opacity 0.2s ease;
+}
+
+.view.standalone {
+    top: 5rem;
+}
+
+.view-scroll {
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+/* VIEWPORTS */
+.view[data-viewport="bottom"] {
+    transform: translateY(100%);
+}
+
+#settings-view.view {
+    top: 0;
 }
 
 .mapa
@@ -9,51 +76,20 @@ html
     height: calc(100% - 5rem);
 }
 
-html, body
-{
-    margin: 0;
-    padding: 0;
-    background-color: #fff;
-    height: 100%;
-}
-body
-{
-    background: none;
-    position: relative;
-}
-
 section[role="region"]
 {
     margin-bottom: 1.5rem;
     position: relative;
 }
-#container
-{
-    height: 100%;
-}
-
-#container [data-position="current"]
-{
-    height: 100%;
-}
-
-#container [data-position="left"]
-{
-    transform: translateX(-100%);
-    z-index: 10;
-    position: absolute;
-    top: 0;
-    width: 100%;
-}
 
 body[role="application"] section[role="region"] > header .icon.config {
-  background-image: url(images/icons/config.png);
-  background-size: 3rem;
+    background-image: url(images/icons/config.png);
+    background-size: 3rem;
 }
 
 body[role="application"] section[role="region"] > header button {
-  text-shadow: none;
-  font-weight: normal;
+    text-shadow: none;
+    font-weight: normal;
 }
 
 #path-length-display
@@ -123,62 +159,6 @@ body[role="application"] section[role="region"] > header button {
     background-image: url("images/icons/play.png") !important;
 }
 
-.opensettings #mainwindow
-{
-    animation: 0.4s ease 0s normal forwards 1 currentToRight;
-}
-.opensettings #settings
-{
-    animation: 0.4s ease 0s normal forwards 1 leftToCurrent;
-}
-.closesettings #mainwindow
-{
-    animation: 0.4s ease 0s normal forwards 1 rightToCurrent;
-}
-.closesettings #settings
-{
-    animation: 0.4s ease 0s normal forwards 1 currentToLeft;
-}
-@keyframes currentToLeft
-{
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}
-@keyframes rightToCurrent
-{
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(0); }
-}
-@keyframes leftToCurrent
-{
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0); }
-}
-@keyframes currentToRight
-{
-    0% { transform: translateX(0); }
-    100% { transform: translateX(100%); }
-}
-
-.opendialog
-{
-    animation: 0.2s forwards fadeIn;
-}
-@keyframes fadeIn
-{
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-.closedialog
-{
-    animation: 0.2s forwards fadeOut;
-}
-@keyframes fadeOut
-{
-    0% { opacity: 1; }
-    100% { opacity: 0; }
-}
-
 .arrow-icon
 {
     width: 0; 
@@ -191,4 +171,13 @@ body[role="application"] section[role="region"] > header button {
     position: relative;
     left: -6px;
     top: -16px;
+}
+
+#settings-view {
+  z-index: 20;
+  bottom: 0;
+}
+
+#settings-view .view-scroll {
+  top: 5rem;
 }
