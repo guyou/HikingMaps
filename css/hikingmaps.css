@@ -11,19 +11,16 @@ a::-moz-focus-inner {
 }
 
 html {
-    height: 100%;
     font-size: 10px;
     color: #000;
 }
 
 body {
-    height: 100%;
     background-color: #000;
 }
 
 /* WINDOW & VIEWS */
 .window, .view {
-    height: 100%;
     position: fixed;
     left: 0;
     top: 0;
@@ -40,25 +37,10 @@ body {
 }
 
 .view {
-    top: 9.3rem;
     background: #f4f4f4;
     transform: translate(0, 0);
     transition: transform 0.5s ease,
     opacity 0.2s ease;
-}
-
-.view.standalone {
-    top: 5rem;
-}
-
-.view-scroll {
-    overflow-x: hidden;
-    overflow-y: auto;
-    position: absolute;
-    bottom: 0;
-    top: 0;
-    left: 0;
-    right: 0;
 }
 
 /* VIEWPORTS */
@@ -66,20 +48,9 @@ body {
     transform: translateY(100%);
 }
 
-#settings-view.view {
-    top: 0;
-}
-
-.mapa
-{
+.map {
     width: 100%;
-    height: calc(100% - 5rem);
-}
-
-section[role="region"]
-{
-    margin-bottom: 1.5rem;
-    position: relative;
+    height: calc(100vh - 5rem);
 }
 
 body[role="application"] section[role="region"] > header .icon.config {
@@ -92,8 +63,7 @@ body[role="application"] section[role="region"] > header button {
     font-weight: normal;
 }
 
-#path-length-display
-{
+#path-length-display {
     position: absolute;
     right: 1rem;
     top: 1rem;
@@ -103,8 +73,7 @@ body[role="application"] section[role="region"] > header button {
     z-index: 1004;
 }
 
-.bottom-toolbar
-{
+.bottom-toolbar {
     position: absolute;
     left: 0;
     bottom: 0;
@@ -113,30 +82,25 @@ body[role="application"] section[role="region"] > header button {
     background-color: rgba(0, 0, 0, 0.75);
     z-index: 1004;
 }
-.invisible
-{
+.invisible {
     display: none;
 }
 
-.bottom-btn
-{
+.bottom-btn {
     height: 4rem;
     border: none;
     width: 6rem;
     background: transparent no-repeat center / 3rem !important;
     margin: 0 calc((100% - 25rem) / 8);
 }
-.bottom-btn.disabled
-{
+.bottom-btn.disabled {
     opacity: 0.3;
     pointer-events: none;
 }
-.bottom-btn:active
-{
+.bottom-btn:active {
     background-color: #008AAA !important;
 }
-.refresh-btn
-{
+.refresh-btn {
     background-image: url("images/icons/refresh.png") !important;
 }
 .refresh-btn[data-state="refreshing"] {
@@ -146,21 +110,17 @@ body[role="application"] section[role="region"] > header button {
     from { transform: rotate(1deg); }
     to   { transform: rotate(360deg); }
 }
-.delete-btn
-{
+.delete-btn {
     background-image: url("images/icons/delete.png") !important;
 }
-.pause-btn
-{
+.pause-btn {
     background-image: url("images/icons/pause.png") !important;
 }
-.play-btn
-{
+.play-btn {
     background-image: url("images/icons/play.png") !important;
 }
 
-.arrow-icon
-{
+.arrow-icon {
     width: 0; 
     height: 0; 
     border-left: 12px solid transparent;
@@ -174,10 +134,6 @@ body[role="application"] section[role="region"] > header button {
 }
 
 #settings-view {
-  z-index: 20;
-  bottom: 0;
-}
-
-#settings-view .view-scroll {
-  top: 5rem;
+    z-index: 20;
+    bottom: 0;
 }

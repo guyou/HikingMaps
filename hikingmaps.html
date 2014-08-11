@@ -27,27 +27,29 @@
   <body id="body" role="application">
 	<script type="text/javascript" src="js/hikingmaps.js"></script>
 
-	<section id="mainwindow" class="window skin-organic" role="region">
-	  <header>
-        <menu type="toolbar">
-		  <button id="menubutton" class="settings-button"><span class="icon config">Configuration</span></button>
-        </menu>
-		<h1 data-l10n-id="main-heading">Hiking Maps</h1>
-	  </header>
+    <section id="main-view" class="view">
+	  <section id="mainwindow" class="window skin-organic" role="region">
+		<header>
+          <menu type="toolbar">
+			<button id="menubutton" class="settings-button"><span class="icon config">Configuration</span></button>
+          </menu>
+		  <h1 data-l10n-id="main-heading">Hiking Maps</h1>
+		</header>
 
-	  <div id="map" class="mapa">
-		<div id="path-length-display"></div>
+		<div id="map" class="map">
+		  <div id="path-length-display"></div>
 
-		<div id="bottom-toolbar" class="bottom-toolbar">
-		  <button id="waydelete" class="delete-btn bottom-btn"></button>
-		  <button id="locateplaypause" class="play-btn bottom-btn"></button>
-		  <button id="locate" class="refresh-btn bottom-btn"></button>
+		  <div id="bottom-toolbar" class="bottom-toolbar">
+			<button id="waydelete" class="delete-btn bottom-btn"></button>
+			<button id="locateplaypause" class="play-btn bottom-btn"></button>
+			<button id="locate" class="refresh-btn bottom-btn"></button>
+		  </div>
 		</div>
-	  </div>
+	  </section>
 	</section>
 
     <section id="settings-view" class="view" data-viewport="bottom">
-	  <section id="settings" class="window skin-organic" role="region" data-position="left">
+	  <section id="settings" class="window skin-organic" role="region">
 		<header>
 		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-done-text">Done</button></menu>
 		  <h1 data-l10n-id="settings-heading">Settings</h1>
@@ -67,7 +69,7 @@
 				<p>
 				  <select id="trackfileselect">
 					<option value="-1" data-l10-id="settings-file-none">&lt;None&gt;</option>
-				</select>
+				  </select>
 				</p>
 			  </li>
 			</ul>
