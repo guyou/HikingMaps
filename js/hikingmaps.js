@@ -121,9 +121,7 @@ var pathTracker = {
 var mainDB;
 var map;
 var tracks;
-var localizationchecktimer;
 var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
-var mozL10n=navigator.mozL10n;
 var offline=false;
 
 var positionIcon = new L.Icon.Default();
@@ -134,8 +132,6 @@ var positionCircle = null;
 var trackControl = null;
 var trackPolyline = null;
 var trackingHandler = null;
-
-document.getElementById('body').onload = WaitForLocalizationToLoad;
 
 
 function InitializeDatabase(cb)
@@ -297,23 +293,6 @@ function EndSettings()
     offline = document.getElementById('settings-offline').checked;
 }
 
-function WaitForLocalizationToLoad()
-{
-    localizationchecktimer=setInterval(CheckLocalizationLoaded,100);
-}
-
-function CheckLocalizationLoaded()
-{
-    if (mozL10n.get('hiking-maps-title') != '') {
-	clearInterval(localizationchecktimer);
-
-	InitializeDatabase(function (db)
-			   {
-			       InitializeApplication();
-			   });
-    }
-}
-
 function InitializeApplication()
 {
     map = L.map('map').setView([51.505, -0.09], 13);
@@ -457,3 +436,7 @@ function InitializeApplication()
 	document.getElementById('trackfileselectitem').parentNode.removeChild(document.getElementById('trackfileselectitem'));
     }
 }
+
+InitializeDatabase(function (db) {
+    InitializeApplication();
+});
