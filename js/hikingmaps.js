@@ -197,6 +197,7 @@ function UpdateTrackFiles()
 function ClearTrack()
 {
     if (trackControl !== null) {
+	document.getElementById('track-length-display').textContent = '';
 	map.removeLayer(trackControl);
 	trackControl = null;
     }
@@ -211,6 +212,7 @@ function NewTrackFile(f)
 	trackControl = new L.GPX(e.target.result, {async: true}).on(
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
+		document.getElementById('track-length-display').textContent = '(' + (trackControl.get_distance() / 1000).toFixed(1) + ' km)';
 	    }).addTo(map);
     };
     reader.readAsText(f);
@@ -277,7 +279,7 @@ function WayDelete()
     map.removeLayer(positionCircle);
 
     pathTracker.reset();
-    document.getElementById('path-length-display').textContent='';
+    document.getElementById('path-length-display').textContent = '';
     map.removeLayer(trackPolyline);
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
 }
