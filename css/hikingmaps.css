@@ -64,7 +64,7 @@ body[role="application"] section[role="region"] > header button {
 }
 
 #track-length-display {
-    font-size: 2rem;
+    font-size: 1.8rem;
 }
 
 #path-length-display {
@@ -72,7 +72,7 @@ body[role="application"] section[role="region"] > header button {
     right: 1rem;
     top: 1rem;
     color: #00f;
-    font: 2rem "MozTT", Sans-serif;
+    font: 1.8rem "MozTT", Sans-serif;
     background-color: rgba(0, 0, 0, 0);
     z-index: 1004;
 }

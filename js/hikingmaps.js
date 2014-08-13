@@ -121,8 +121,9 @@ var pathTracker = {
 var mainDB;
 var map;
 var tracks;
-var firefoxOS=/Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
-var offline=false;
+var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
+var metricUnits = true;
+var offline = false;
 
 var positionIcon = new L.Icon.Default();
 var directionIcon = new ArrowIcon();
@@ -133,6 +134,25 @@ var trackControl = null;
 var trackPolyline = null;
 var trackingHandler = null;
 
+
+function formatDistance (l) {
+    if (l == 0) {
+	return '';
+    } else if (metricUnits) {
+	if (l < 1000) {
+	    return l.toFixed(0) + ' m';
+	} else {
+	    return (l / 1000).toFixed(1) + ' km';
+	}
+    } else {
+	var yards = l / 0.9144;
+	if (yards < 440) {
+	    return yards.toFixed(0) + ' yd';
+	} else {
+	    return (yards / 1760).toFixed(yards < 1760 ? 2 : 1) + ' m';
+	}
+    }
+}
 
 function InitializeDatabase(cb)
 {
@@ -212,7 +232,6 @@ function NewTrackFile(f)
 	trackControl = new L.GPX(e.target.result, {async: true}).on(
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
-		document.getElementById('track-length-display').textContent = '(' + (trackControl.get_distance() / 1000).toFixed(1) + ' km)';
 	    }).addTo(map);
     };
     reader.readAsText(f);
@@ -226,9 +245,7 @@ function PositionUpdated(e)
     map.panTo(pathTracker.getPosition());
 
     var len = pathTracker.getLength();
-    if (len > 0) {
-        document.getElementById('path-length-display').textContent = len.toFixed(0);
-    }
+    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
 
     if ((e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading)) {
 	directionIcon.setDirection(e.coords.heading);
@@ -293,6 +310,11 @@ function EndSettings()
 {
     document.getElementById('settings-view').dataset.viewport = 'bottom';
     offline = document.getElementById('settings-offline').checked;
+    metricUnits = document.getElementById('settings-units').checked;
+
+    if (trackControl !== null) {
+	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
+    }
 }
 
 function InitializeApplication()
