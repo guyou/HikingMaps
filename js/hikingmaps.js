@@ -348,6 +348,13 @@ function InitializeApplication()
     var cacheDB = {
 	_db: mainDB,
 
+	clear: function () {
+            var transaction = this._db.transaction(['tilecache', 'tilemeta'],
+						   'readwrite');
+            transaction.objectStore('tilemeta').clear();
+            transaction.objectStore('tilecache').clear();
+	},
+
 	put: function (key, value, etag) {
             var transaction = this._db.transaction(['tilecache', 'tilemeta'],
 						   'readwrite');
@@ -446,6 +453,9 @@ function InitializeApplication()
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
     document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
     document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
+    document.getElementById('clear-cache').addEventListener('click', function () {
+	cacheDB.clear();
+    }, false);
 
     if (firefoxOS) {
 	UpdateTrackFiles();
