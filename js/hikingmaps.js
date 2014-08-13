@@ -122,8 +122,8 @@ var mainDB;
 var map;
 var tracks;
 var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
-var metricUnits = true;
-var offline = false;
+var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
+var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
 var positionIcon = new L.Icon.Default();
 var directionIcon = new ArrowIcon();
@@ -303,14 +303,21 @@ function WayDelete()
 
 function OpenSettings()
 {
+    document.getElementById('settings-offline').checked = offline;
+    document.getElementById('settings-units').checked = metricUnits;
+
     delete document.getElementById('settings-view').dataset.viewport;
 }
 
 function EndSettings()
 {
     document.getElementById('settings-view').dataset.viewport = 'bottom';
+
     offline = document.getElementById('settings-offline').checked;
+    window.localStorage.setItem('offline', offline.toString());
+
     metricUnits = document.getElementById('settings-units').checked;
+    window.localStorage.setItem('metric', metricUnits.toString());
 
     if (trackControl !== null) {
 	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
