@@ -54,7 +54,7 @@ body {
 }
 
 body[role="application"] section[role="region"] > header .icon.config {
-    background-image: url(images/icons/config.png);
+    background-image: url(images/icons/settings_icon.png);
     background-size: 3rem;
 }
 
