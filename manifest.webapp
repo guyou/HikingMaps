@@ -1,13 +1,14 @@
 {
     "version": "1.0",
     "name": "HikingMaps",
-    "description": "A guide that will help you in your hikes with maps, tracks and GPS position",
+    "description": "Map application for outdoor enthusiasts",
     "launch_path": "/hikingmaps.html",
     "type": "privileged",
     "icons":
     {
-	"60": "/hikingguide60.png",
-	"128": "/hikingguide128.png"
+	"60": "/hikingmaps60.png",
+	"128": "/hikingmaps128.png",
+	"512": "/hikingmaps512.png"
     },
     "developer":
     {
@@ -36,7 +37,7 @@
 	},
 	"systemXHR":
 	{
-	    "description": "Necessary for remote XMLHttpRequest"
+	    "description": "Necessary to load map data"
 	}
     }
 }
