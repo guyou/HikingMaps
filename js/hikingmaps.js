@@ -118,12 +118,37 @@ var pathTracker = {
 };
 
 
+var mapInfo = [
+    { name : 'OpenStreetMap',
+      baseUrl : 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      subdomains : 'abc',
+      attribution : 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' },
+    { name : 'MapQuest',
+      baseUrl : 'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+      subdomains : '1234',
+      attribution : 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">' },
+    { name : 'OVI Terrain',
+      baseUrl : 'http://maptile.maps.svc.ovi.com/maptiler/maptile/newest/terrain.day/{z}/{x}/{y}/256/png8',
+      subdomains : '1',
+      attribution : 'Map data and imagery &copy; <a href="http://maps.ovi.com/">OVI</a>' },
+    { name : 'Google Terrain',
+      baseUrl : 'http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+      subdomains : '1',
+      attribution : 'Map data and imagery &copy; <a href="http://maps.google.com/">Google</a>' },
+    { name : 'Google Hybrid',
+      baseUrl : 'http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+      subdomains : '1',
+      attribution : 'Map data and imagery &copy; <a href="http://maps.google.com/">Google</a>' }
+];
+
 var mainDB;
 var map;
 var tracks;
 var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
+var activeLayer = (window.localStorage.getItem('active-layer') || '0');
+var mapLayer = null;
 
 var positionIcon = new L.Icon.Default();
 var directionIcon = new ArrowIcon();
@@ -152,6 +177,61 @@ function formatDistance (l) {
 	    return (yards / 1760).toFixed(yards < 1760 ? 2 : 1) + ' m';
 	}
     }
+}
+
+function createMapLayer (cacheDB, info) {
+    var cacheLayer = new L.TileLayer.Functional(function (view) {
+	var url = info.baseUrl
+            .replace('{z}', view.zoom)
+            .replace('{x}', view.tile.column)
+            .replace('{y}', view.tile.row)
+            .replace('{s}', view.subdomain);
+
+	var deferred = {
+	    _fn: null,
+
+	    then: function (fn) {
+		this._fn = fn;
+	    },
+
+	    resolve: function (arg) {
+		var imgURL = window.URL.createObjectURL(arg);
+		this._fn(imgURL);
+		window.URL.revokeObjectURL(imgURL);
+	    }
+	};
+
+	if (offline) {
+	    cacheDB.get(url, function (arg) {
+		deferred.resolve(arg);
+	    });
+	} else {
+	    cacheDB.getETag(url, function (arg) {
+		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
+		xhr.open('GET', url, true);
+		if (arg) {
+		    xhr.setRequestHeader('If-None-Match', arg);
+		}
+		xhr.responseType = 'blob';
+		xhr.addEventListener('load', function () {
+		    if (xhr.status === 200) {
+			var blob = xhr.response;
+			cacheDB.put(url, blob, xhr.getResponseHeader('ETag'));
+			deferred.resolve(blob);
+		    } else {
+			cacheDB.get(url, function (arg) {
+			    deferred.resolve(arg);
+			});
+		    }
+		}, false);
+		xhr.send();
+	    });
+	}
+
+	return deferred;
+    }, { attribution: info.attribution, maxZoom: 18,
+	 subdomains: info.subdomains });
+    return cacheLayer;
 }
 
 function InitializeDatabase(cb)
@@ -189,6 +269,7 @@ function InitializeDatabase(cb)
 
 function UpdateTrackFiles()
 {
+    var trackFileSelect = document.getElementById('trackfileselect');
     var storage = navigator.getDeviceStorage('sdcard');
     if (storage) {
 	var trackscursor = storage.enumerate('tracks');
@@ -200,10 +281,10 @@ function UpdateTrackFiles()
 	trackscursor.onsuccess = function() {
 	    if (!trackscursor.result) {
 		for (trackindex in tracks) {
-		    document.getElementById('trackfileselect').options[document.getElementById('trackfileselect').options.length] = new Option(tracks[trackindex].name.split('/').pop(), trackindex);
+		    trackFileSelect.options[trackFileSelect.options.length] = new Option(tracks[trackindex].name.split('/').pop(), trackindex);
 		}
 	    } else {
-	    	var file=trackscursor.result;
+	    	var file = trackscursor.result;
 		if (file.name.split('.').pop() == 'gpx') {
 		    tracks.push(file);
 		}
@@ -322,6 +403,7 @@ function EndSettings()
     if (trackControl !== null) {
 	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
     }
+    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
 }
 
 function InitializeApplication()
@@ -388,62 +470,6 @@ function InitializeApplication()
 	},
     };
 
-    var cacheLayer = new L.TileLayer.Functional(function (view) {
-	var url = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            .replace('{z}', view.zoom)
-            .replace('{x}', view.tile.column)
-            .replace('{y}', view.tile.row)
-            .replace('{s}', view.subdomain);
-
-	var deferred = {
-	    _fn: null,
-
-	    then: function (fn) {
-		this._fn = fn;
-	    },
-
-	    resolve: function (arg) {
-		var imgURL = window.URL.createObjectURL(arg);
-		this._fn(imgURL);
-		window.URL.revokeObjectURL(imgURL);
-	    }
-	};
-
-	if (offline) {
-	    cacheDB.get(url, function (arg) {
-		deferred.resolve(arg);
-	    });
-	} else {
-	    cacheDB.getETag(url, function (arg) {
-		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
-		xhr.open('GET', url, true);
-		if (arg) {
-		    xhr.setRequestHeader('If-None-Match', arg);
-		}
-		xhr.responseType = 'blob';
-		xhr.addEventListener('load', function () {
-		    if (xhr.status === 200) {
-			var blob = xhr.response;
-			cacheDB.put(url, blob, xhr.getResponseHeader('ETag'));
-			deferred.resolve(blob);
-		    } else {
-			cacheDB.get(url, function (arg) {
-			    deferred.resolve(arg);
-			});
-		    }
-		}, false);
-		xhr.send();
-	    });
-	}
-
-	return deferred;
-    }, {
-	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
-	maxZoom: 18,
-	subdomains: 'abc'
-    });
-    cacheLayer.addTo(map);
-
     L.control.scale().addTo(map);
 
     trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
@@ -459,15 +485,15 @@ function InitializeApplication()
 
     if (firefoxOS) {
 	UpdateTrackFiles();
-	document.getElementById('trackfileselect')
-	    .addEventListener('change', function (e) {
-		var idx = document.getElementById('trackfileselect').value;
-		if (idx == -1) {
-		    ClearTrack();
-		} else {
-		    NewTrackFile(tracks[idx]);
-		}
-	    }, false);
+	var trackFileSelect = document.getElementById('trackfileselect');
+	trackFileSelect.addEventListener('change', function (e) {
+	    var idx = trackFileSelect.value;
+	    if (idx == -1) {
+		ClearTrack();
+	    } else {
+		NewTrackFile(tracks[idx]);
+	    }
+	}, false);
 	document.getElementById('trackfileitem').parentNode.removeChild(document.getElementById('trackfileitem'));
     } else {
 	document.getElementById('trackfile')
@@ -476,6 +502,30 @@ function InitializeApplication()
 	    }, false);
 	document.getElementById('trackfileselectitem').parentNode.removeChild(document.getElementById('trackfileselectitem'));
     }
+
+    var mapLayerSelect = document.getElementById('maplayerselect');
+
+    for (var mapIdx in mapInfo) {
+	mapLayerSelect.options[mapLayerSelect.options.length] = new Option(mapInfo[mapIdx].name, mapIdx);
+    }
+
+    if (activeLayer < mapLayerSelect.options.length) {
+	mapLayerSelect.options[activeLayer].selected = 'true';
+    } else {
+	activeLayer = 0;
+    }
+
+    mapLayer = createMapLayer (cacheDB, mapInfo[activeLayer]);
+    mapLayer.addTo(map);
+
+    document.getElementById('maplayerselect').addEventListener('change', function (e) {
+	activeLayer = mapLayerSelect.value;
+	window.localStorage.setItem('active-layer', activeLayer.toString());
+
+	map.removeLayer(mapLayer);
+	mapLayer = createMapLayer (cacheDB, mapInfo[activeLayer]);
+	mapLayer.addTo(map);
+    });
 }
 
 InitializeDatabase(function (db) {
