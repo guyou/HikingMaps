@@ -1,5 +1,5 @@
 {
-    "version": "1.0",
+    "version": "0.1",
     "name": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
     "launch_path": "/hikingmaps.html",
@@ -21,7 +21,7 @@
 	"en":
 	{
 	    "name": "HikingMaps",
-	    "description": "A guide that will help you in your hikes with maps, tracks and GPS position"
+	    "description": "Map application for outdoor enthusiasts. Supports multiple map layers (OpenStreetMap, OVI and Google), tracks your hike and shows your current position from GPS"
 	}
     },
     "permissions":
