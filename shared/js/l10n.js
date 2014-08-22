@@ -980,13 +980,19 @@
     return modified.join('');
   }
 
+  function Pseudo(id, name, charMap, modFn) {
+    this.id = id;
+    this.translate = mapContent.bind(null, function(val) {
+      return makeAccented(charMap, modFn(val));
+    });
+    this.name = this.translate(name);
+  }
+
   var PSEUDO_STRATEGIES = {
-    'qps-ploc': mapContent.bind(null, function(val) {
-      return makeAccented(ACCENTED_MAP, makeLonger(val));
-    }),
-    'qps-plocm': mapContent.bind(null, function(val) {
-      return makeAccented(FLIPPED_MAP, makeRTL(val));
-    })
+    'qps-ploc': new Pseudo('qps-ploc', 'Accented English',
+                           ACCENTED_MAP, makeLonger),
+    'qps-plocm': new Pseudo('qps-plocm', 'Mirrored English',
+                            FLIPPED_MAP, makeRTL)
   };
 
 
@@ -1084,7 +1090,8 @@
 
     if (this.isPseudo) {
       for (; key = keys[i]; i++) {
-        this.entries[key] = walkContent(ast[key], PSEUDO_STRATEGIES[this.id]);
+        this.entries[key] = walkContent(ast[key],
+                                        PSEUDO_STRATEGIES[this.id].translate);
       }
     } else {
       for (; key = keys[i]; i++) {
@@ -1274,7 +1281,8 @@
   var DEBUG = false;
   var isPretranslated = false;
   var rtlList = ['ar', 'he', 'fa', 'ps', 'qps-plocm', 'ur'];
-  var nodeObserver = false;
+  var nodeObserver = null;
+  var pendingElements = null;
 
   var moConfig = {
     attributes: true,
@@ -1322,6 +1330,7 @@
         return getDirection(navigator.mozL10n.ctx.supportedLocales[0]);
       }
     },
+    qps: PSEUDO_STRATEGIES,
     _getInternalAPI: function() {
       return {
         Error: L10nError,
@@ -1336,8 +1345,7 @@
         fireLocalizedEvent: fireLocalizedEvent,
         PropertiesParser: PropertiesParser,
         compile: compile,
-        walkContent: walkContent,
-        PSEUDO_STRATEGIES: PSEUDO_STRATEGIES
+        walkContent: walkContent
       };
     }
   };
@@ -1378,38 +1386,28 @@
     isPretranslated = !PSEUDO_STRATEGIES.hasOwnProperty(navigator.language) &&
                       (document.documentElement.lang === navigator.language);
 
-    // this is a special case for netError bug; see https://bugzil.la/444165
-    if (document.documentElement.dataset.noCompleteBug) {
-      pretranslate.call(navigator.mozL10n);
-      return;
-    }
-
-
-    if (isPretranslated) {
-      waitFor('interactive', function() {
-        window.setTimeout(initResources.bind(navigator.mozL10n));
-      });
-    } else {
-      if (document.readyState === 'complete') {
-        window.setTimeout(initResources.bind(navigator.mozL10n));
-      } else {
-        waitFor('interactive', pretranslate.bind(navigator.mozL10n));
-      }
-    }
-
+    // XXX always pretranslate if data-no-complete-bug is set;  this is
+    // a workaround for a netError page not firing some onreadystatechange
+    // events;  see https://bugzil.la/444165
+    var pretranslate = document.documentElement.dataset.noCompleteBug ?
+      true : !isPretranslated;
+    waitFor('interactive', init.bind(navigator.mozL10n, pretranslate));
   }
 
-  function pretranslate() {
-    /* jshint -W068 */
-    if (inlineLocalization.call(this)) {
-      waitFor('interactive', (function() {
-        window.setTimeout(initResources.bind(this));
-      }).bind(this));
+  function init(pretranslate) {
+    nodeObserver = new MutationObserver(onMutations.bind(navigator.mozL10n));
+    nodeObserver.observe(document, moConfig);
+
+    if (pretranslate) {
+      //XXX: bring back if bug 994370 gets reverted
+      //inlineLocalization.call(navigator.mozL10n);
+      initResources.call(navigator.mozL10n);
     } else {
-      initResources.call(this);
+      window.setTimeout(initResources.bind(navigator.mozL10n));
     }
   }
 
+  /*
   function inlineLocalization() {
     var locale = this.ctx.getLocale(navigator.language);
     var scriptLoc = locale.isPseudo ? this.ctx.defaultLocale : locale.id;
@@ -1417,7 +1415,7 @@
                          .querySelector('script[type="application/l10n"]' +
                          '[lang="' + scriptLoc + '"]');
     if (!script) {
-      return false;
+      return;
     }
 
     // the inline localization is happenning very early, when the ctx is not
@@ -1436,8 +1434,8 @@
 
     // the visible DOM is now pretranslated
     isPretranslated = true;
-    return true;
   }
+  */
 
   function initResources() {
     var resLinks = document.head
@@ -1522,9 +1520,12 @@
     }
     isPretranslated = false;
 
-    if (!nodeObserver) {
-      nodeObserver = new MutationObserver(onMutations.bind(this));
-      nodeObserver.observe(document, moConfig);
+    if (pendingElements) {
+      /* jshint boss:true */
+      for (var i = 0, element; element = pendingElements[i]; i++) {
+        translateElement.call(this, element);
+      }
+      pendingElements = null;
     }
 
     fireLocalizedEvent.call(this);
@@ -1672,6 +1673,14 @@
   }
 
   function translateElement(element) {
+    if (isPretranslated && !this.ctx.isReady) {
+      if (!pendingElements) {
+        pendingElements = [];
+      }
+      pendingElements.push(element);
+      return;
+    }
+
     var l10n = getL10nAttributes(element);
 
     if (!l10n.id) {
