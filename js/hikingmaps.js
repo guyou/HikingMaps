@@ -350,17 +350,17 @@ function ManualPositionUpdate()
 
 function PositionUpdatePlayPause()
 {
-    if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
+    if (document.getElementById('locateplaypause').classList.contains('icon-media-pause')) {
 	document.getElementById('locate').classList.remove('invisible');
-	document.getElementById('locateplaypause').classList.remove('pause-btn');
-	document.getElementById('locateplaypause').classList.add('play-btn');
+	document.getElementById('locateplaypause').classList.remove('icon-media-pause');
+	document.getElementById('locateplaypause').classList.add('icon-media-play');
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
     } else {
 	document.getElementById('locate').classList.add('invisible');
-	document.getElementById('locateplaypause').classList.add('pause-btn');
-	document.getElementById('locateplaypause').classList.remove('play-btn');
+	document.getElementById('locateplaypause').classList.add('icon-media-pause');
+	document.getElementById('locateplaypause').classList.remove('icon-media-play');
 
 	map.removeLayer(positionCircle);
 	pathTracker.start();

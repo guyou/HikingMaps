@@ -2,7 +2,7 @@
     "version": "0.2",
     "name": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
-    "launch_path": "/hikingmaps.html",
+    "launch_path": "/index.html",
     "type": "privileged",
     "icons":
     {

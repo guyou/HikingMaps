@@ -18,7 +18,7 @@ CACHE MANIFEST
 /css/images/icons/settings_icon@2x.png
 /css/images/icons/settings_icon.png
 /css/leaflet.css
-/hikingmaps.html
+/index.html
 /js/gpx.js
 /js/hikingmaps.js
 /js/images/marker-icon-2x.png
@@ -27,9 +27,10 @@ CACHE MANIFEST
 /js/leaflet.functionaltilelayer.js
 /js/leaflet.js
 /locales/en.properties
+/locales/en-US.properties
 /locales/es.properties
 /locales/locales.ini
-/locales/pt.properties
+/locales/pt-BR.properties
 /pin-icon-end.png
 /pin-icon-start.png
 /pin-shadow.png
