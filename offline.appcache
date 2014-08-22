@@ -27,7 +27,9 @@ CACHE MANIFEST
 /js/leaflet.functionaltilelayer.js
 /js/leaflet.js
 /locales/en.properties
+/locales/es.properties
 /locales/locales.ini
+/locales/pt.properties
 /pin-icon-end.png
 /pin-icon-start.png
 /pin-shadow.png
