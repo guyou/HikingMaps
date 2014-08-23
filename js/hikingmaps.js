@@ -199,11 +199,11 @@ function formatDuration (d, def='') {
 	    if (minutes == '0') {
 		return seconds + ' s';
 	    } else {
-		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
+		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' m';
 	    }
 	} else {
 	    return hours + ':' + (minutes.length < 2 ? '0' : '') + minutes +
-		':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
+		':' + (seconds.length < 2 ? '0' : '') + seconds;
 	}
     }
 }
