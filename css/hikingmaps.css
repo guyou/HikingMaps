@@ -146,23 +146,23 @@ body[role="application"] section[role="region"] > header button {
 section[data-type="sidebar"] > div > dl {
     width: 100%;
     margin: 0;
-    padding: 0;
+    padding: 1rem 1rem 1rem 2rem;
     overflow: hidden;
 
     text-decoration: none;
     color: #fff;
     font-size: 1.4rem;
-    line-height: 3rem;
-    text-indent: 2rem;
 }
 
 section[data-type="sidebar"] > div > dl > dt {
     float: left;
-    width: 50%;
+    width: calc(50% - 0.5rem);
     list-style: none;
+    text-align: right;
 }
 
 section[data-type="sidebar"] > div > dl > dd {
-    float: left;
-    width: 50%;
+    float: right;
+    width: calc(50% - 0.5rem);
+    text-align: left;
 }

@@ -199,7 +199,7 @@ function formatDuration (d, def='') {
 	    if (minutes == '0') {
 		return seconds + ' s';
 	    } else {
-		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' m';
+		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
 	    }
 	} else {
 	    return hours + ':' + (minutes.length < 2 ? '0' : '') + minutes +
