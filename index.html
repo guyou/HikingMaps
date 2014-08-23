@@ -8,7 +8,7 @@
 	<link rel="resource" type="application/l10n" href="locales/locales.ini">
 
 	<link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/icons.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/drawer.css">
 	<link rel="stylesheet" type="text/css" href="shared/style/headers.css">
 	<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
 	<link rel="stylesheet" type="text/css" href="shared/style/lists.css">
@@ -26,14 +26,46 @@
   </head>
 
   <body id="body" role="application">
+	<section id="statistics" data-type="sidebar">
+      <header>
+		<h1 data-l10n-id="statistics-heading">Statistics</h1>
+      </header>
+      <div>
+		<dl>
+		  <dt data-l10n-id="statistics-distance">distance</dt>
+		  <dd id="stats-distance"></dd>
+		</dl>
+		<dl>
+		  <dt data-l10n-id="statistics-total-time">total time</dt>
+		  <dd id="stats-total-time"></dd>
+		</dl>
+		<dl>
+		  <dt data-l10n-id="statistics-moving-time">moving time</dt>
+		  <dd id="stats-moving-time"></dd>
+		</dl>
+		<dl>
+		  <dt data-l10n-id="statistics-moving-speed">moving speed</dt>
+		  <dd id="stats-moving-speed"></dd>
+		</dl>
+		<dl>
+		  <dt data-l10n-id="statistics-height-gain">height gain</dt>
+		  <dd id="stats-height-gain"></dd>
+		</dl>
+		<dl>
+		  <dt data-l10n-id="statistics-height-loss">height loss</dt>
+		  <dd id="stats-height-loss"></dd>
+		</dl>
+      </div>
+	</section>
+
     <section id="main-view" class="view">
 	  <section id="mainwindow" class="window" role="region">
 		<header>
-          <button><span class="icon icon-menu">menu</span></button>
+          <button id="statsbutton"><span class="icon icon-menu">menu</span></button>
           <menu type="toolbar">
-			<button id="menubutton" class="settings-button"><span class="icon config">Configuration</span></button>
+			<button id="menubutton"><span class="icon config">Configuration</span></button>
           </menu>
-		  <h1 data-l10n-id="main-heading">HikingMaps<span> </span><em id="track-length-display" /></h1>
+		  <h1 data-l10n-id="main-heading">HikingMaps<span> </span><em id="track-length-display"></em></h1>
 		</header>
 
 		<div id="map" class="map">

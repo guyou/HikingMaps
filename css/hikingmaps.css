@@ -26,7 +26,7 @@ body {
     top: 0;
     right: 0;
     bottom: 0;
-    z-index: 5;
+    z-index: 10;
     overflow: hidden;
 }
 
@@ -46,6 +46,10 @@ body {
 /* VIEWPORTS */
 .view[data-viewport="bottom"] {
     transform: translateY(100%);
+}
+
+.view[data-viewport="side"] {
+    transform: translateX(80%);
 }
 
 .map {
@@ -70,7 +74,7 @@ body[role="application"] section[role="region"] > header button {
     color: #00f;
     font: 1.8rem "MozTT", Sans-serif;
     background-color: rgba(0, 0, 0, 0);
-    z-index: 1004;
+    z-index: 1010;
 }
 
 .bottom-toolbar {
@@ -80,7 +84,7 @@ body[role="application"] section[role="region"] > header button {
     width: 100%;
     height: 4rem;
     background-color: rgba(0, 0, 0, 0.6);
-    z-index: 1004;
+    z-index: 1010;
 }
 .invisible {
     display: none;
@@ -137,4 +141,28 @@ body[role="application"] section[role="region"] > header button {
 #settings-view {
     z-index: 20;
     bottom: 0;
+}
+
+section[data-type="sidebar"] > div > dl {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+
+    text-decoration: none;
+    color: #fff;
+    font-size: 1.4rem;
+    line-height: 3rem;
+    text-indent: 2rem;
+}
+
+section[data-type="sidebar"] > div > dl > dt {
+    float: left;
+    width: 50%;
+    list-style: none;
+}
+
+section[data-type="sidebar"] > div > dl > dd {
+    float: left;
+    width: 50%;
 }

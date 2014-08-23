@@ -40,24 +40,28 @@ var pathTracker = {
     _moveDuration: 0,
     _waitDuration: 0,
 
-    _altGain: 0,
-    _altLoss: 0,
+    _heightGain: 0,
+    _heightLoss: 0,
     _length: 0,
 
     getLength: function () {
 	return this._length;
     },
 
-    getAltGain: function () {
-	return this._altGain;
+    getHeightGain: function () {
+	return this._heightGain;
     },
 
-    getAltLoss: function () {
-	return this._altLoss;
+    getHeightLoss: function () {
+	return this._heightLoss;
     },
 
     getPosition: function () {
 	return this._curPos;
+    },
+
+    getTotalDuration: function () {
+	return this._moveDuration + this._waitDuration;
     },
 
     getMoveDuration: function () {
@@ -74,8 +78,8 @@ var pathTracker = {
 	this._curPos = null;
 	this._moveDuration = 0;
 	this._waitDuration = 0;
-	this._altGain = 0;
-	this._altLoss = 0;
+	this._heightGain = 0;
+	this._heightLoss = 0;
 	this._length = 0;
     },
 
@@ -94,11 +98,11 @@ var pathTracker = {
 		this._length += prevPos.distanceTo(this._curPos);
 
 		if (this._curPos.alt !== null) {
-		    var altDiff = this._curPos.alt - prevPos.alt;
-		    if (altDiff >= 0) {
-			this._altGain += altDiff;
+		    var heightDiff = this._curPos.alt - prevPos.alt;
+		    if (heightDiff >= 0) {
+			this._heightGain += heightDiff;
 		    } else {
-			this._altLoss -= altDiff;
+			this._heightLoss -= heightDiff;
 		    }
 		}
 	    }
@@ -164,9 +168,9 @@ var trackPolyline = null;
 var trackingHandler = null;
 
 
-function formatDistance (l) {
+function formatDistance (l, def='') {
     if (l == 0) {
-	return '';
+	return def;
     } else if (metricUnits) {
 	if (l < 1000) {
 	    return l.toFixed(0) + ' m';
@@ -180,6 +184,47 @@ function formatDistance (l) {
 	} else {
 	    return (yards / 1760).toFixed(yards < 1760 ? 2 : 1) + ' m';
 	}
+    }
+}
+
+function formatDuration (d, def='') {
+    if (d == 0) {
+	return def;
+    } else {
+	var seconds = ((d / 1000) % 60).toFixed(0);
+	var minutes = ((d / 60000) % 60).toFixed(0);
+	var hours = (d / 3600000).toFixed(0);
+
+	if (hours == '0') {
+	    if (minutes == '0') {
+		return seconds + ' s';
+	    } else {
+		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
+	    }
+	} else {
+	    return hours + ':' + (minutes.length < 2 ? '0' : '') + minutes +
+		':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
+	}
+    }
+}
+
+function formatSpeed (s, def='') {
+    if (isNaN(s)) {
+	return def;
+    } else if (metricUnits) {
+	return (s * 3600).toFixed(1) + ' km/h';
+    } else {
+	return (s * 3600 / 0.9144 / 1.76).toFixed(1) + ' m/h';
+    }
+}
+
+function formatHeight (h, def='') {
+    if (h == 0) {
+	return def;
+    } else if (metricUnits) {
+	return h.toFixed(0) + ' m';
+    } else {
+	return (h / 0.9144 * 3).toFixed(0) + ' ft';
     }
 }
 
@@ -350,17 +395,17 @@ function ManualPositionUpdate()
 
 function PositionUpdatePlayPause()
 {
-    if (document.getElementById('locateplaypause').classList.contains('icon-media-pause')) {
+    if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
 	document.getElementById('locate').classList.remove('invisible');
-	document.getElementById('locateplaypause').classList.remove('icon-media-pause');
-	document.getElementById('locateplaypause').classList.add('icon-media-play');
+	document.getElementById('locateplaypause').classList.remove('pause-btn');
+	document.getElementById('locateplaypause').classList.add('play-btn');
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
     } else {
 	document.getElementById('locate').classList.add('invisible');
-	document.getElementById('locateplaypause').classList.add('icon-media-pause');
-	document.getElementById('locateplaypause').classList.remove('icon-media-play');
+	document.getElementById('locateplaypause').classList.add('pause-btn');
+	document.getElementById('locateplaypause').classList.remove('play-btn');
 
 	map.removeLayer(positionCircle);
 	pathTracker.start();
@@ -408,6 +453,27 @@ function EndSettings()
 	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
     }
     document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
+}
+
+function UpdateStatistics()
+{
+    document.getElementById('stats-distance').textContent = formatDistance(pathTracker.getLength(), '-');
+    document.getElementById('stats-total-time').textContent = formatDuration(pathTracker.getTotalDuration(), '-');
+    document.getElementById('stats-moving-time').textContent = formatDuration(pathTracker.getMoveDuration(), '-');
+    document.getElementById('stats-moving-speed').textContent = formatSpeed(pathTracker.getLength() / pathTracker.getMoveDuration(), '-');
+    document.getElementById('stats-height-gain').textContent = formatHeight(pathTracker.getHeightGain(), '-');
+    document.getElementById('stats-height-loss').textContent = formatHeight(pathTracker.getHeightLoss(), '-');
+}
+
+function OpenCloseStats()
+{
+    var mainView = document.getElementById('main-view');
+    if (mainView.dataset.viewport !== undefined) {
+	delete mainView.dataset.viewport;
+    } else {
+	UpdateStatistics();
+	mainView.dataset.viewport = 'side';
+    }
 }
 
 function InitializeApplication()
@@ -483,6 +549,7 @@ function InitializeApplication()
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
     document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
     document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
+    document.getElementById('statsbutton').addEventListener('click', OpenCloseStats, false);
     document.getElementById('clear-cache').addEventListener('click', function () {
 	cacheDB.clear();
     }, false);
