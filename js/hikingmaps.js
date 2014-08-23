@@ -191,9 +191,9 @@ function formatDuration (d, def='') {
     if (d == 0) {
 	return def;
     } else {
-	var seconds = ((d / 1000) % 60).toFixed(0);
-	var minutes = ((d / 60000) % 60).toFixed(0);
-	var hours = (d / 3600000).toFixed(0);
+	var seconds = (Math.floor(d / 1000) % 60).toFixed(0);
+	var minutes = (Math.floor(d / 60000) % 60).toFixed(0);
+	var hours = Math.floor(d / 3600000).toFixed(0);
 
 	if (hours == '0') {
 	    if (minutes == '0') {
