@@ -44,16 +44,21 @@ var pathTracker = {
     _heightLoss: 0,
     _length: 0,
 
+    _upOrDown : 0,
+    _prevHeight : null,
+
     getLength: function () {
 	return this._length;
     },
 
     getHeightGain: function () {
-	return this._heightGain;
+	return this._heightGain +
+	    (((this._prevHeight !== null) && (this._curPos !== null) && (this._curPos.alt > this._prevHeight)) ? (this._curPos.alt - this._prevHeight) : 0);
     },
 
     getHeightLoss: function () {
-	return this._heightLoss;
+	return this._heightLoss +
+	    (((this._prevHeight !== null) && (this._curPos !== null) && (this._curPos.alt < this._prevHeight)) ? (this._prevHeight - this._curPos.alt) : 0);
     },
 
     getPosition: function () {
@@ -81,6 +86,8 @@ var pathTracker = {
 	this._heightGain = 0;
 	this._heightLoss = 0;
 	this._length = 0;
+	this._upOrDown = 0;
+	this._prevHeight = null;
     },
 
     start: function () {
@@ -89,22 +96,17 @@ var pathTracker = {
 
     onPosition: function (ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
-	if ((coords.speed !== 0) && (coords.heading !== null) && !isNaN(coords.heading))
+	var prevPos = null;
+	if (this._path.length > 0) {
+	    prevPos = this._path[this._path.length - 1][1];
+	}
+
+	var isStationary = (coords.speed === 0) ||
+	    ((coords.heading !== null) && isNaN(coords.heading));
+	if (! isStationary)
 	{
-	    if (this._path.length > 0) {
-		var prevEntry = this._path[this._path.length - 1];
-		var prevPos = prevEntry[1];
-
+	    if (prevPos !== null) {
 		this._length += prevPos.distanceTo(this._curPos);
-
-		if (this._curPos.alt !== null) {
-		    var heightDiff = this._curPos.alt - prevPos.alt;
-		    if (heightDiff >= 0) {
-			this._heightGain += heightDiff;
-		    } else {
-			this._heightLoss -= heightDiff;
-		    }
-		}
 	    }
 
 	    this._path.push([ts, this._curPos]);
@@ -114,6 +116,43 @@ var pathTracker = {
 	} else {
 	    if (this._curTimestamp !== null) {
 		this._waitDuration += ts - this._curTimestamp;
+	    }
+	}
+
+	if (this._curPos.alt !== null) {
+	    if (this._upOrDown == 0) {
+		if ((this._prevHeight !== null) &&
+		    (this._curPos.alt != this._prevHeight) &&
+		    (Math.abs(this._curPos.alt - this._prevHeight) < coords.altitudeAccuracy / 8)) {
+		    this._upOrDown = (this._curPos.alt >= this._prevHeight) ? 1 : -1;
+		}
+
+		this._prevHeight = this._curPos.alt;
+	    } else {
+		var heightDiff = this._curPos.alt - this._prevHeight;
+
+		if (Math.abs(heightDiff) > coords.altitudeAccuracy) {
+		    this._upOrDown = 0;
+		    this._prevHeight = 0;
+		} else if (heightDiff * this._upOrDown >= 0) {
+		    if (this._upOrDown >= 0) {
+			this._heightGain += heightDiff;
+		    } else {
+			this._heightLoss -= heightDiff;
+		    }
+
+		    this._prevHeight = this._curPos.alt;
+		} else if (Math.abs(heightDiff) > coords.altitudeAccuracy / 2) {
+		    if (this._upOrDown >= 0) {
+			this._heightLoss -= heightDiff;
+			this._upOrDown = -1;
+		    } else {
+			this._heightGain += heightDiff;
+			this._upOrDown = 1;
+		    }
+
+		    this._prevHeight = this._curPos.alt;
+		}
 	    }
 	}
 
@@ -197,13 +236,13 @@ function formatDuration (d, def='') {
 
 	if (hours == '0') {
 	    if (minutes == '0') {
-		return seconds + ' s';
+		return seconds + 's';
 	    } else {
-		return minutes + ':' + (seconds.length < 2 ? '0' : '') + seconds + ' s';
+		return minutes + 'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
 	    }
 	} else {
-	    return hours + ':' + (minutes.length < 2 ? '0' : '') + minutes +
-		':' + (seconds.length < 2 ? '0' : '') + seconds;
+	    return hours + 'h' + (minutes.length < 2 ? '0' : '') + minutes +
+		'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
 	}
     }
 }
