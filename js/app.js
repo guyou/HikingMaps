@@ -608,8 +608,7 @@ function InitializeApplication()
 
     L.control.scale().addTo(map);
 
-    trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
-
+    trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(map);
     document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
     document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
