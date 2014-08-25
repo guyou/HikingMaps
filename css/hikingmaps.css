@@ -124,6 +124,9 @@ body[role="application"] section[role="region"] > header button {
 .play-btn {
     background-image: url("images/icons/play.png") !important;
 }
+.share-btn {
+    background-image: url("images/icons/share.png") !important;
+}
 
 .arrow-icon {
     width: 0; 

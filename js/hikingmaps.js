@@ -47,6 +47,10 @@ var pathTracker = {
     _upOrDown : 0,
     _prevHeight : null,
 
+    getPath: function () {
+	return this._path;
+    },
+
     getLength: function () {
 	return this._length;
     },
@@ -438,6 +442,7 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.remove('invisible');
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
+	document.getElementById('share').classList.remove('invisible');
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
@@ -445,6 +450,7 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.add('invisible');
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
+	document.getElementById('share').classList.add('invisible');
 
 	map.removeLayer(positionCircle);
 	pathTracker.start();
@@ -463,6 +469,8 @@ function WayDelete()
 {
     map.removeLayer(positionMarker);
     map.removeLayer(positionCircle);
+
+    document.getElementById('share').classList.add('invisible');
 
     pathTracker.reset();
     document.getElementById('path-length-display').textContent = '';
@@ -513,6 +521,48 @@ function OpenCloseStats()
 	UpdateStatistics();
 	mainView.dataset.viewport = 'side';
     }
+}
+
+function createGpx()
+{
+    var dateString = new Date().toISOString();
+
+    var data = [];
+    data.push('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n' +
+	      '<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="HikingMaps">\n');
+    data.push('<metadata><link href="http://hikingmaps.cmeerw.org">' +
+	      '<text>HikingMaps</text></link>' +
+	      '<time>' + dateString + '</time></metadata>\n');
+    data.push('<trk><trkseg>\n');
+
+    var path = pathTracker.getPath();
+    for (var idx in path) {
+	var ts = path[idx][0];
+	var coord = path[idx][1];
+	data.push('<trkpt lat="' + coord.lat + '" lon="' + coord.lng + '">' +
+		  '<time>' + new Date(ts).toISOString() + '</time>' +
+		  ((coord.alt !== null) ? ('<ele>' + coord.alt + '</ele>') : '') +
+		 '</trkpt>\n');
+    }
+
+    data.push('</trkseg></trk></gpx>\n');
+    return new Blob(data, { 'type' : 'application/gpx+xml' });
+}
+
+function shareGpx(blob)
+{
+    new MozActivity({ name: 'share',
+		      data: {
+			  type: 'application/gpx+xml',
+			  number: 1,
+			  blobs: [blob],
+			  filepaths: [null]
+		      } });
+}
+
+function ShareTrack()
+{
+    shareGpx(createGpx());
 }
 
 function InitializeApplication()
@@ -586,6 +636,7 @@ function InitializeApplication()
     document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
     document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
+    document.getElementById('share').addEventListener('click', ShareTrack, false);
     document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
     document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
     document.getElementById('statsbutton').addEventListener('click', OpenCloseStats, false);
