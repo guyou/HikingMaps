@@ -193,7 +193,6 @@ var mapInfo = [
 
 var mainDB;
 var map;
-var tracks;
 var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
@@ -376,7 +375,7 @@ function NewTrackFile(f)
 	trackControl = new L.GPX(e.target.result,
 				 { async: true,
 				   polyline_options: { color: '#203090',
-						       opacity: 0.8 } }).on(
+						       opacity: 0.7 } }).on(
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
@@ -453,7 +452,7 @@ function WayDelete()
     pathTracker.reset();
     document.getElementById('path-length-display').textContent = '';
     map.removeLayer(trackPolyline);
-    trackPolyline = L.polyline([], {color: '#209030', opacity: 0.8}).addTo(map);
+    trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(map);
 }
 
 function OpenSettings()
