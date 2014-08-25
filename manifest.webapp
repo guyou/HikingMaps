@@ -4,6 +4,23 @@
     "description": "Map application for outdoor enthusiasts",
     "launch_path": "/index.html",
     "type": "privileged",
+    "activities": {
+        "pick": {
+            "filters": {
+                "type": ["application/gpx+xml"]
+            },
+            "href": "pick.html",
+            "disposition": "inline",
+	    "returnValue": true
+        },
+        "share": {
+            "filters": {
+                "type": ["application/gpx+xml"]
+            },
+            "href": "share.html",
+            "disposition": "inline"
+        }
+    },
     "icons":
     {
 	"60": "/hikingmaps60.png",
@@ -32,8 +49,8 @@
 	},
 	"device-storage:sdcard":
 	{
-	    "description": "Necessary to read tracks from SD card",
-	    "access": "readonly"
+	    "description": "Necessary to load/save tracks from SD card",
+	    "access": "readwrite"
 	},
 	"systemXHR":
 	{

@@ -45,7 +45,7 @@ var pathTracker = {
     _length: 0,
 
     _upOrDown : 0,
-    _prevHeight : null,
+    _prevAlt : null,
 
     getPath: function () {
 	return this._path;
@@ -57,12 +57,12 @@ var pathTracker = {
 
     getHeightGain: function () {
 	return this._heightGain +
-	    (((this._prevHeight !== null) && (this._curPos !== null) && (this._curPos.alt > this._prevHeight)) ? (this._curPos.alt - this._prevHeight) : 0);
+	    (((this._prevAlt !== null) && (this._curPos !== null) && (this._curPos.alt > this._prevAlt)) ? (this._curPos.alt - this._prevAlt) : 0);
     },
 
     getHeightLoss: function () {
 	return this._heightLoss +
-	    (((this._prevHeight !== null) && (this._curPos !== null) && (this._curPos.alt < this._prevHeight)) ? (this._prevHeight - this._curPos.alt) : 0);
+	    (((this._prevAlt !== null) && (this._curPos !== null) && (this._curPos.alt < this._prevAlt)) ? (this._prevAlt - this._curPos.alt) : 0);
     },
 
     getPosition: function () {
@@ -91,22 +91,21 @@ var pathTracker = {
 	this._heightLoss = 0;
 	this._length = 0;
 	this._upOrDown = 0;
-	this._prevHeight = null;
+	this._avgAlt = null;
+	this._prevAlt = null;
     },
 
     start: function () {
 	this._curTimestamp = null;
     },
 
-    onPosition: function (ts, coords) {
+    onPosition: function (isStationary, ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
 	var prevPos = null;
 	if (this._path.length > 0) {
 	    prevPos = this._path[this._path.length - 1][1];
 	}
 
-	var isStationary = (coords.speed === 0) ||
-	    ((coords.heading !== null) && isNaN(coords.heading));
 	if (! isStationary)
 	{
 	    if (prevPos !== null) {
@@ -125,28 +124,26 @@ var pathTracker = {
 
 	if (this._curPos.alt !== null) {
 	    if (this._upOrDown == 0) {
-		if ((this._prevHeight !== null) &&
-		    (this._curPos.alt != this._prevHeight) &&
-		    (Math.abs(this._curPos.alt - this._prevHeight) < coords.altitudeAccuracy / 8)) {
-		    this._upOrDown = (this._curPos.alt >= this._prevHeight) ? 1 : -1;
+		if ((this._prevAlt !== null) &&
+		    (this._curPos.alt != this._prevAlt) &&
+		    (Math.abs(this._curPos.alt - this._prevAlt) < coords.altitudeAccuracy / 8)) {
+		    this._upOrDown = (this._curPos.alt >= this._prevAlt) ? 1 : -1;
 		}
 
-		this._prevHeight = this._curPos.alt;
+		this._avgAlt = this._prevAlt = this._curPos.alt;
 	    } else {
-		var heightDiff = this._curPos.alt - this._prevHeight;
+		this._avgAlt = (this._curPos.alt + this._avgAlt) / 2;
+		var heightDiff = this._avgAlt - this._prevAlt;
 
-		if (Math.abs(heightDiff) > coords.altitudeAccuracy) {
-		    this._upOrDown = 0;
-		    this._prevHeight = 0;
-		} else if (heightDiff * this._upOrDown >= 0) {
+		if (heightDiff * this._upOrDown >= 0) {
 		    if (this._upOrDown >= 0) {
 			this._heightGain += heightDiff;
 		    } else {
 			this._heightLoss -= heightDiff;
 		    }
 
-		    this._prevHeight = this._curPos.alt;
-		} else if (Math.abs(heightDiff) > coords.altitudeAccuracy / 2) {
+		    this._prevAlt = this._avgAlt;
+		} else if (Math.abs(heightDiff) >= coords.altitudeAccuracy) {
 		    if (this._upOrDown >= 0) {
 			this._heightLoss -= heightDiff;
 			this._upOrDown = -1;
@@ -155,12 +152,14 @@ var pathTracker = {
 			this._upOrDown = 1;
 		    }
 
-		    this._prevHeight = this._curPos.alt;
+		    this._prevAlt = this._avgAlt;
 		}
 	    }
 	}
 
+	var result = this._curTimestamp === null;
 	this._curTimestamp = ts;
+	return result;
     }
 };
 
@@ -359,34 +358,6 @@ function InitializeDatabase(cb)
     };
 }
 
-function UpdateTrackFiles()
-{
-    var trackFileSelect = document.getElementById('trackfileselect');
-    var storage = navigator.getDeviceStorage('sdcard');
-    if (storage) {
-	var trackscursor = storage.enumerate('tracks');
-	tracks = [];
-	trackscursor.onerror = function() {
-	    console.error('Error in Device Storage API',
-			  trackscursor.error.name);
-	};
-	trackscursor.onsuccess = function() {
-	    if (!trackscursor.result) {
-		for (trackindex in tracks) {
-		    trackFileSelect.options[trackFileSelect.options.length] = new Option(tracks[trackindex].name.split('/').pop(), trackindex);
-		}
-	    } else {
-	    	var file = trackscursor.result;
-		if (file.name.split('.').pop() == 'gpx') {
-		    tracks.push(file);
-		}
-		trackscursor.continue();
-	    }
-	};
-    }
-    return false;
-}
-
 function ClearTrack()
 {
     if (trackControl !== null) {
@@ -402,7 +373,10 @@ function NewTrackFile(f)
 
     reader = new FileReader();
     reader.onload = function(e) {
-	trackControl = new L.GPX(e.target.result, {async: true}).on(
+	trackControl = new L.GPX(e.target.result,
+				 { async: true,
+				   polyline_options: { color: '#203090',
+						       opacity: 0.8 } }).on(
 	    'loaded', function(e) {
 		map.fitBounds(e.target.getBounds());
 	    }).addTo(map);
@@ -412,16 +386,20 @@ function NewTrackFile(f)
 
 function PositionUpdated(e)
 {
-    pathTracker.onPosition(e.timestamp, e.coords);
+    var isStationary = (e.coords.speed === 0) ||
+	((e.coords.heading !== null) && isNaN(e.coords.heading));
+    var isNewSeg = pathTracker.onPosition(isStationary, e.timestamp, e.coords);
 
-    trackPolyline.addLatLng(pathTracker.getPosition());
-    map.panTo(pathTracker.getPosition());
+    if (! isStationary) {
+	trackPolyline.addLatLng(pathTracker.getPosition());
+	map.panTo(pathTracker.getPosition());
 
-    var len = pathTracker.getLength();
-    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
+	var len = pathTracker.getLength();
+	document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
 
-    if ((e.coords.speed !== 0) && (e.coords.heading !== null) && !isNaN(e.coords.heading)) {
 	directionIcon.setDirection(e.coords.heading);
+    } else if (isNewSeg) {
+	map.panTo(pathTracker.getPosition());
     }
 
     positionMarker.setIcon(directionIcon);
@@ -475,7 +453,7 @@ function WayDelete()
     pathTracker.reset();
     document.getElementById('path-length-display').textContent = '';
     map.removeLayer(trackPolyline);
-    trackPolyline = L.polyline([], {opacity: 0.9}).addTo(map);
+    trackPolyline = L.polyline([], {color: '#209030', opacity: 0.8}).addTo(map);
 }
 
 function OpenSettings()
@@ -644,28 +622,29 @@ function InitializeApplication()
 	cacheDB.clear();
     }, false);
 
-    if (firefoxOS) {
-	UpdateTrackFiles();
-	var trackFileSelect = document.getElementById('trackfileselect');
-	trackFileSelect.addEventListener('change', function (e) {
-	    var idx = trackFileSelect.value;
-	    if (idx == -1) {
-		ClearTrack();
-	    } else {
-		NewTrackFile(tracks[idx]);
-	    }
-	}, false);
-	document.getElementById('trackfileitem').parentNode.removeChild(document.getElementById('trackfileitem'));
-    } else {
-	document.getElementById('trackfile')
-	    .addEventListener('change', function (e) {
-		NewTrackFile(e.target.files[0]);
-	    }, false);
-	document.getElementById('trackfileselectitem').parentNode.removeChild(document.getElementById('trackfileselectitem'));
-    }
+    var trackFilePick = document.getElementById('trackfilepick');
+    trackFilePick.addEventListener('click', function (e) {
+	var a = new MozActivity({ name: 'pick',
+				  data: { type: 'application/gpx+xml',
+					  multiple: false }});
+	a.onsuccess = function() {
+	    var fileNameNode = document.getElementById('trackfilename');
+	    fileNameNode.childNodes[0].textContent =
+		a.result.blob.name.split('/').pop().replace('.gpx', '');
+	    fileNameNode.classList.remove('invisible');
+
+	    NewTrackFile(a.result.blob);
+	};
+	a.onerror = function() { console.log('Failure when trying to pick an file'); };
+    }, false);
+    var trackFileInput = document.getElementById('trackfile');
+    trackFileInput.addEventListener('change', function (e) {
+	NewTrackFile(e.target.files[0]);
+    }, false);
+
+    document.getElementById(firefoxOS ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
 
     var mapLayerSelect = document.getElementById('maplayerselect');
-
     for (var mapIdx in mapInfo) {
 	mapLayerSelect.options[mapLayerSelect.options.length] = new Option(mapInfo[mapIdx].name, mapIdx);
     }

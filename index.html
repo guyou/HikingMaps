@@ -1,23 +1,23 @@
 <!DOCTYPE HTML>
 <html manifest="offline.appcache">
   <head>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1">
-    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <meta charset="utf-8" />
 	<title data-l10n-id="hiking-maps-title">HikingMaps</title>
 
-	<link rel="resource" type="application/l10n" href="locales/locales.ini">
+	<link rel="resource" type="application/l10n" href="locales/locales.ini" />
 
-	<link rel="stylesheet" type="text/css" href="shared/style/buttons.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/drawer.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/headers.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/lists.css">
-	<link rel="stylesheet" type="text/css" href="shared/style/switches.css">
+	<link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
+	<link rel="stylesheet" type="text/css" href="shared/style/drawer.css" />
+	<link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
+	<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" />
+	<link rel="stylesheet" type="text/css" href="shared/style/lists.css" />
+	<link rel="stylesheet" type="text/css" href="shared/style/switches.css" />
 
 	<script type="text/javascript" defer="defer" src="shared/js/l10n.js"></script>
 
-	<link rel="stylesheet" type="text/css" href="style/leaflet.css">
-	<link rel="stylesheet" type="text/css" href="style/hikingmaps.css">
+	<link rel="stylesheet" type="text/css" href="style/leaflet.css" />
+	<link rel="stylesheet" type="text/css" href="style/hikingmaps.css" />
 
 	<script type="text/javascript" defer="defer" src="js/leaflet.js"></script>
 	<script type="text/javascript" defer="defer" src="js/gpx.js"></script>
@@ -93,17 +93,12 @@
 
 		  <section data-type="list">
 			<ul>
-			  <li id="trackfileitem">
-				<p>
-				  <input type="file" placeholder="GPX" id="trackfile" name="files[]" />
-				</p>
+			  <li id="trackfilename" class="invisible"><p></p></li>
+			  <li id="trackfileitem" class="invisible">
+				<input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" />
 			  </li>
-			  <li id="trackfileselectitem">
-				<p>
-				  <select id="trackfileselect">
-					<option value="-1" data-l10n-id="settings-file-none">&lt;None&gt;</option>
-				  </select>
-				</p>
+			  <li id="trackfilepickitem" class="invisible">
+				<button id="trackfilepick">Pick</button>
 			  </li>
 			</ul>
 		  </section>
@@ -117,7 +112,7 @@
 			  <li>
 				<aside class="pack-end">
 				  <label class="pack-switch">
-					<input id="settings-units" type="checkbox" checked>
+					<input id="settings-units" type="checkbox" checked="checked" />
 					<span></span>
 				  </label>
 				</aside>
@@ -142,7 +137,7 @@
 			  <li>
 				<aside class="pack-end">
 				  <label class="pack-switch">
-					<input id="settings-offline" type="checkbox">
+					<input id="settings-offline" type="checkbox" />
 					<span></span>
 				  </label>
 				</aside>

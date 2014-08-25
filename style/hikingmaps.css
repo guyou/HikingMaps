@@ -146,6 +146,14 @@ body[role="application"] section[role="region"] > header button {
     bottom: 0;
 }
 
+#settings-view {
+    overflow-y: scroll;
+}
+
+#files {
+    overflow-y: scroll;
+}
+
 .leaflet-container .leaflet-control-attribution {
     text-align: right;
     margin: 0px 0px 0px 100px;
@@ -173,4 +181,8 @@ section[data-type="sidebar"] > div > dl > dd {
     float: right;
     width: calc(50% - 0.5rem);
     text-align: left;
+}
+
+[data-type="list"] li.invisible {
+    display: none;
 }
