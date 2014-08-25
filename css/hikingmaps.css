@@ -146,6 +146,11 @@ body[role="application"] section[role="region"] > header button {
     bottom: 0;
 }
 
+.leaflet-container .leaflet-control-attribution {
+    text-align: right;
+    margin: 0px 0px 0px 100px;
+}
+
 section[data-type="sidebar"] > div > dl {
     width: 100%;
     margin: 0;
