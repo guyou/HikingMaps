@@ -193,7 +193,7 @@ var mapInfo = [
 
 var mainDB;
 var map;
-var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
+var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent) || true;
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 var activeLayer = (window.localStorage.getItem('active-layer') || '0');
@@ -627,14 +627,21 @@ function InitializeApplication()
 					  multiple: false }});
 	a.onsuccess = function() {
 	    var fileNameNode = document.getElementById('trackfilename');
-	    fileNameNode.childNodes[0].textContent =
-		a.result.blob.name.split('/').pop().replace('.gpx', '');
-	    fileNameNode.classList.remove('invisible');
+	    var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
+	    fileNameNode.setAttribute('value', name);
 
 	    NewTrackFile(a.result.blob);
 	};
 	a.onerror = function() { console.log('Failure when trying to pick an file'); };
     }, false);
+
+    var trackFileClear = document.getElementById('trackfileclear');
+    trackFileClear.addEventListener('click', function (e) {
+	var fileNameNode = document.getElementById('trackfilename');
+	fileNameNode.setAttribute('value', name);
+	ClearTrack();
+    }, false);
+
     var trackFileInput = document.getElementById('trackfile');
     trackFileInput.addEventListener('change', function (e) {
 	NewTrackFile(e.target.files[0]);

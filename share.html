@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
     <meta charset="utf-8" />
-	<title data-l10n-id="save">Save</title>
+	<title data-l10n-id="save">Save GPX File</title>
 
 	<link rel="resource" type="application/l10n" href="locales/locales.ini" />
 
@@ -24,16 +24,17 @@
 	  <section id="files" class="window skin-organic" role="region">
 		<header>
 		  <button id="close-btn" class="icon icon-close">close</button>
-		  <h1 data-l10n-id="save">Save</h1>
+		  <h1 data-l10n-id="save">Save GPX File</h1>
 		</header>
 
 		<section data-type="list">
-		  <form><p>
-			  <input id="filename" type="text" placeholde="Filename" />
-		  </p></form>
-		  <ul>
-			<li><button id="save-btn">Save</button></li>
-		  </ul>
+		  <form role="pick">
+			<button id="save-btn" type="button">Save</button>
+			<p>
+			  <input id="filename" type="text" placeholder="file name" />
+			  <button id="filenameclear" type="reset">Clear</button>
+			</p>
+		  </form>
 		</section>
 	  </section>
 	</section>

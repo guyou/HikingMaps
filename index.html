@@ -82,7 +82,7 @@
 	</section>
 
     <section id="settings-view" class="view" data-viewport="bottom">
-	  <section id="settings" class="window skin-organic" role="region">
+	  <section id="settings" class="skin-organic" role="region">
 		<header>
 		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-done-text">Done</button></menu>
 		  <h1 data-l10n-id="settings-heading">Settings</h1>
@@ -91,63 +91,59 @@
 		<section data-type="list">
 		  <header><h2 data-l10n-id="settings-track-file-text">Track file</h2></header>
 
-		  <section data-type="list">
-			<ul>
-			  <li id="trackfilename" class="invisible"><p></p></li>
-			  <li id="trackfileitem" class="invisible">
-				<input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" />
-			  </li>
-			  <li id="trackfilepickitem" class="invisible">
-				<button id="trackfilepick">Pick</button>
-			  </li>
-			</ul>
-		  </section>
+		  <form id="trackfilepickitem" class="invisible" role="pick">
+			<button id="trackfilepick" type="button">Pick</button>
+			<p>
+			  <input id="trackfilename" type="text" disabled="true" placeholder="None" value="" />
+			  <button id="trackfileclear" type="reset">Clear</button>
+			</p>
+		  </form>
+
+		  <ul data-type="list">
+			<li id="trackfileitem" class="invisible">
+			  <p><input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
+			</li>
+		  </ul>
 		</section>
 
 		<section data-type="list">
 		  <header><h2 data-l10n-id="settings-units">Units</h2></header>
 
-		  <section data-type="list">
-			<ul>
-			  <li>
-				<aside class="pack-end">
-				  <label class="pack-switch">
-					<input id="settings-units" type="checkbox" checked="checked" />
-					<span></span>
-				  </label>
-				</aside>
-				<p data-l10n-id="settings-units-metric">Metric</p>
-			  </li>
-			</ul>
-		  </section>
+		  <ul data-type="list">
+			<li>
+			  <aside class="pack-end">
+				<label class="pack-switch">
+				  <input id="settings-units" type="checkbox" checked="checked" />
+				  <span></span>
+				</label>
+			  </aside>
+			  <p data-l10n-id="settings-units-metric">Metric</p>
+			</li>
+		  </ul>
 		</section>
 
 		<section data-type="list">
 		  <header><h2 data-l10n-id="settings-map-data">Map Data</h2></header>
 
-		  <section data-type="list">
-			<ul>
-			  <li>
-				<p>
-				  <select id="maplayerselect">
-				  </select>
-				</p>
-			  </li>
+		  <ul data-type="list">
+			<li>
+			  <p><select id="maplayerselect"></select></p>
+			</li>
 
-			  <li>
-				<aside class="pack-end">
-				  <label class="pack-switch">
-					<input id="settings-offline" type="checkbox" />
-					<span></span>
-				  </label>
-				</aside>
-				<p data-l10n-id="settings-data-offline">Offline</p>
-			  </li>
-			  <li>
-				<button id="clear-cache" data-l10n-id="settings-clear-cache">Clear Cache</button>
-			  </li>
-			</ul>
-		  </section>
+			<li>
+			  <aside class="pack-end">
+				<label class="pack-switch">
+				  <input id="settings-offline" type="checkbox" />
+				  <span></span>
+				</label>
+			  </aside>
+			  <p data-l10n-id="settings-data-offline">Offline</p>
+			</li>
+
+			<li>
+			  <button id="clear-cache" data-l10n-id="settings-clear-cache">Clear Cache</button>
+			</li>
+		  </ul>
 		</section>
       </section>
 	</section>
