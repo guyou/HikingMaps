@@ -35,6 +35,7 @@ var pathTracker = {
     _path: [],
 
     _curTimestamp: null,
+    _moveTimestamp : null,
     _curPos: null,
 
     _moveDuration: 0,
@@ -84,6 +85,7 @@ var pathTracker = {
     reset: function () {
 	this._path = [];
 	this._curTimestamp = null;
+	this._moveTimestamp = null;
 	this._curPos = null;
 	this._moveDuration = 0;
 	this._waitDuration = 0;
@@ -97,6 +99,7 @@ var pathTracker = {
 
     start: function () {
 	this._curTimestamp = null;
+	this._moveTimestamp = null;
     },
 
     onPosition: function (isStationary, ts, coords) {
@@ -108,14 +111,23 @@ var pathTracker = {
 
 	if (! isStationary)
 	{
-	    if (prevPos !== null) {
-		this._length += prevPos.distanceTo(this._curPos);
-	    }
-
 	    this._path.push([ts, this._curPos]);
 	    if (this._curTimestamp !== null) {
-		this._moveDuration += ts - this._curTimestamp;
+		if (prevPos !== null) {
+		    this._length += prevPos.distanceTo(this._curPos);
+		}
+
+		if ((this._moveTimestamp !== null) &&
+		    (ts - this._moveTimestamp < 2.5)) {
+		    // we had a very short wait - count it as moving instead
+		    this._moveDuration += ts - this._moveTimestamp;
+		    this._waitDuration -= this._curTimestamp - this._moveTimestamp;
+		} else {
+		    this._moveDuration += ts - this._curTimestamp;
+		}
 	    }
+
+	    this._moveTimestamp = ts;
 	} else {
 	    if (this._curTimestamp !== null) {
 		this._waitDuration += ts - this._curTimestamp;
@@ -143,7 +155,7 @@ var pathTracker = {
 		    }
 
 		    this._prevAlt = this._avgAlt;
-		} else if (Math.abs(heightDiff) >= coords.altitudeAccuracy) {
+		} else if (Math.abs(heightDiff) >= 1.5 * coords.altitudeAccuracy) {
 		    if (this._upOrDown >= 0) {
 			this._heightLoss -= heightDiff;
 			this._upOrDown = -1;
