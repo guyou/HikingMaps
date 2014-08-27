@@ -83,30 +83,6 @@ L.GPX = L.FeatureGroup.extend({
     }
   },
 
-  get_duration_string: function(duration, hidems) {
-    var s = '';
-
-    if (duration >= _HOUR_IN_MILLIS) {
-      s += Math.floor(duration / _HOUR_IN_MILLIS) + ':';
-      duration = duration % _HOUR_IN_MILLIS;
-    }
-
-    var mins = Math.floor(duration / _MINUTE_IN_MILLIS);
-    duration = duration % _MINUTE_IN_MILLIS;
-    if (mins < 10) s += '0';
-    s += mins + '\'';
-
-    var secs = Math.floor(duration / _SECOND_IN_MILLIS);
-    duration = duration % _SECOND_IN_MILLIS;
-    if (secs < 10) s += '0';
-    s += secs;
-
-    if (!hidems && duration > 0) s += '.' + Math.round(Math.floor(duration)*1000)/1000;
-    else s += '"';
-
-    return s;
-  },
-
   // Public methods
   to_miles:            function(v) { return v / 1.60934; },
   to_ft:               function(v) { return v * 3.28084; },
@@ -314,7 +290,7 @@ L.GPX = L.FeatureGroup.extend({
       this._info.duration.end = ll.meta.time;
 
       if (last != null) {
-        this._info.length += this._dist3d(last, ll);
+        this._info.length += this._dist2d(last, ll);
 
         var t = ll.meta.ele - last.meta.ele;
         if (t > 0) this._info.elevation.gain += t;
@@ -347,12 +323,6 @@ L.GPX = L.FeatureGroup.extend({
     var c = 2 * Math.atan2(Math.sqrt(r), Math.sqrt(1-r));
     var d = R * c;
     return d;
-  },
-
-  _dist3d: function(a, b) {
-    var planar = this._dist2d(a, b);
-    var height = Math.abs(b.meta.ele - a.meta.ele);
-    return Math.sqrt(Math.pow(planar, 2) + Math.pow(height, 2));
   },
 
   _deg2rad: function(deg) {

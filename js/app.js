@@ -297,9 +297,13 @@ function createMapLayer (cacheDB, info) {
 	    },
 
 	    resolve: function (arg) {
-		var imgURL = window.URL.createObjectURL(arg);
-		this._fn(imgURL);
-		window.URL.revokeObjectURL(imgURL);
+		if (arg !== undefined) {
+		    var imgURL = window.URL.createObjectURL(arg);
+		    this._fn(imgURL);
+		    window.URL.revokeObjectURL(imgURL);
+		} else {
+		    this._fn(null);
+		}
 	    }
 	};
 
