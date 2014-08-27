@@ -196,7 +196,7 @@ L.GPX = L.FeatureGroup.extend({
 
   _parse_gpx_data: function(xml, options) {
     var j, i, el, layers = [];
-    var tags = [['rte','rtept'], ['trkseg','trkpt']];
+    var tags = [['rte','rtept'], ['trkseg','trkpt'], ['gpx', 'wpt']];
 
     var name = xml.getElementsByTagName('name');
     if (name.length > 0) {
