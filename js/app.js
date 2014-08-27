@@ -93,20 +93,37 @@ var pathTracker = {
 	this._elevLoss = 0;
 	this._length = 0;
 	this._upOrDown = 0;
-	this._avgAlt = null;
+	this._curAlt = null;
 	this._prevAlt = null;
     },
 
     start: function () {
 	this._curTimestamp = null;
 	this._moveTimestamp = null;
+	this._curAlt = null;
+	this._upOrDown = 0;
     },
 
     onPosition: function (isStationary, ts, coords) {
-	this._curPos = new L.LatLng(coords.latitude, coords.longitude, coords.altitude);
-	var prevPos = null;
-	if (this._path.length > 0) {
-	    prevPos = this._path[this._path.length - 1][1];
+	this._curPos = new L.LatLng(coords.latitude, coords.longitude,
+				    coords.altitude);
+	var prevPos = (this._path.length > 0) ?
+	    this._path[this._path.length - 1][1] : null;
+
+	if (this._curPos.alt !== null) {
+	    this._curAlt = (this._curAlt === null) ?
+		this._curPos.alt : (this._curAlt + this._curPos.alt) / 2;
+
+	    if (this._upOrDown == 0) {
+		if ((this._prevAlt !== null) &&
+		    (this._curPos.alt != this._prevAlt) &&
+		    (Math.abs(this._curPos.alt - this._prevAlt) < coords.altitudeAccuracy / 8)) {
+		    this._upOrDown = (this._curPos.alt >= this._prevAlt) ? 1 : -1;
+		    this._prevAlt = this._curAlt;
+		} else {
+		    this._prevAlt = this._curPos.alt;
+		}
+	    }
 	}
 
 	if (! isStationary)
@@ -125,47 +142,36 @@ var pathTracker = {
 		} else {
 		    this._moveDuration += ts - this._curTimestamp;
 		}
+
+		if (this._upOrDown != 0) {
+		    var elevDiff = this._curAlt - this._prevAlt;
+
+		    if (elevDiff * this._upOrDown >= 0) {
+			if (this._upOrDown >= 0) {
+			    this._elevGain += elevDiff;
+			} else {
+			    this._elevLoss -= elevDiff;
+			}
+
+			this._prevAlt = this._curAlt;
+		    } else if (Math.abs(elevDiff) >= 2 * coords.altitudeAccuracy) {
+			if (this._upOrDown >= 0) {
+			    this._elevLoss -= elevDiff;
+			    this._upOrDown = -1;
+			} else {
+			    this._elevGain += elevDiff;
+			    this._upOrDown = 1;
+			}
+
+			this._prevAlt = this._curAlt;
+		    }
+		}
 	    }
 
 	    this._moveTimestamp = ts;
 	} else {
 	    if (this._curTimestamp !== null) {
 		this._waitDuration += ts - this._curTimestamp;
-	    }
-	}
-
-	if (this._curPos.alt !== null) {
-	    if (this._upOrDown == 0) {
-		if ((this._prevAlt !== null) &&
-		    (this._curPos.alt != this._prevAlt) &&
-		    (Math.abs(this._curPos.alt - this._prevAlt) < coords.altitudeAccuracy / 8)) {
-		    this._upOrDown = (this._curPos.alt >= this._prevAlt) ? 1 : -1;
-		}
-
-		this._avgAlt = this._prevAlt = this._curPos.alt;
-	    } else {
-		this._avgAlt = (this._curPos.alt + this._avgAlt) / 2;
-		var elevDiff = this._avgAlt - this._prevAlt;
-
-		if (elevDiff * this._upOrDown >= 0) {
-		    if (this._upOrDown >= 0) {
-			this._elevGain += elevDiff;
-		    } else {
-			this._elevLoss -= elevDiff;
-		    }
-
-		    this._prevAlt = this._avgAlt;
-		} else if (Math.abs(elevDiff) >= 2 * coords.altitudeAccuracy) {
-		    if (this._upOrDown >= 0) {
-			this._elevLoss -= elevDiff;
-			this._upOrDown = -1;
-		    } else {
-			this._elevGain += elevDiff;
-			this._upOrDown = 1;
-		    }
-
-		    this._prevAlt = this._avgAlt;
-		}
 	    }
 	}
 
