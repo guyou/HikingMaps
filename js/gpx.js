@@ -54,8 +54,9 @@ var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
 };
 var _DEFAULT_CIRCLE_MARKER_OPTS = {
-  fill: false,
-  radius: 2
+  clickable: false,
+  fill: true,
+  radius: 3
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
