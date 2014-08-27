@@ -53,6 +53,10 @@ var _DEFAULT_MARKER_OPTS = {
 var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
 };
+var _DEFAULT_CIRCLE_MARKER_OPTS = {
+  fill: false,
+  radius: 2
+};
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
     options.max_point_interval = options.max_point_interval || _MAX_POINT_INTERVAL_MS;
@@ -62,6 +66,9 @@ L.GPX = L.FeatureGroup.extend({
     options.polyline_options = this._merge_objs(
       _DEFAULT_POLYLINE_OPTS,
       options.polyline_options || {});
+    options.circle_marker_options = this._merge_objs(
+      _DEFAULT_CIRCLE_MARKER_OPTS,
+      options.circle_marker_options || {});
 
     L.Util.setOptions(this, options);
 
@@ -196,7 +203,7 @@ L.GPX = L.FeatureGroup.extend({
 
   _parse_gpx_data: function(xml, options) {
     var j, i, el, layers = [];
-    var tags = [['rte','rtept'], ['trkseg','trkpt'], ['gpx', 'wpt']];
+    var tags = [['rte','rtept'], ['trkseg','trkpt']];
 
     var name = xml.getElementsByTagName('name');
     if (name.length > 0) {
@@ -218,7 +225,7 @@ L.GPX = L.FeatureGroup.extend({
     for (j = 0; j < tags.length; j++) {
       el = xml.getElementsByTagName(tags[j][0]);
       for (i = 0; i < el.length; i++) {
-        var coords = this._parse_trkseg(el[i], xml, options, tags[j][1]);
+        var coords = this._parse_trkseg(el[i], options, tags[j][1]);
         if (coords.length === 0) continue;
 
         // add track
@@ -248,6 +255,15 @@ L.GPX = L.FeatureGroup.extend({
       }
     }
 
+    var coords = this._parse_trkseg(xml, options, 'wpt');
+    if (coords.length > 0) {
+      for (var idx in coords) {
+        var p = new L.CircleMarker(coords[idx], options.circle_marker_options);
+        this.fire('addpoint', { point: p });
+        layers.push(p);
+      }
+    }
+
     this._info.hr.avg = Math.round(this._info.hr._total / this._info.hr._points.length);
 
     if (!layers.length) return;
@@ -257,7 +273,7 @@ L.GPX = L.FeatureGroup.extend({
     return layer;
   },
 
-  _parse_trkseg: function(line, xml, options, tag) {
+  _parse_trkseg: function(line, options, tag) {
     var el = line.getElementsByTagName(tag);
     if (!el.length) return [];
     var coords = [];
@@ -289,7 +305,7 @@ L.GPX = L.FeatureGroup.extend({
       this._info.elevation._points.push([this._info.length, ll.meta.ele]);
       this._info.duration.end = ll.meta.time;
 
-      if (last != null) {
+      if (last != null && tag != 'wpt') {
         this._info.length += this._dist2d(last, ll);
 
         var t = ll.meta.ele - last.meta.ele;

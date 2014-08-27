@@ -396,6 +396,7 @@ function NewTrackFile(f)
     reader.onload = function(e) {
 	trackControl = new L.GPX(e.target.result,
 				 { async: true,
+				   circle_marker_options: { color: '#203090' },
 				   polyline_options: { color: '#203090',
 						       opacity: 0.7 } }).on(
 	    'loaded', function(e) {
@@ -495,7 +496,7 @@ function EndSettings()
     metricUnits = document.getElementById('settings-units').checked;
     window.localStorage.setItem('metric', metricUnits.toString());
 
-    if (trackControl !== null) {
+    if ((trackControl !== null) && (trackControl.get_distance() > 0)) {
 	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
     }
     document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
