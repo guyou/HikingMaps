@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
     <meta charset="utf-8" />
-	<title data-l10n-id="hiking-maps-title">HikingMaps</title>
+	<title data-l10n-id="main-heading">HikingMaps</title>
 
 	<link rel="resource" type="application/l10n" href="locales/locales.ini" />
 
@@ -84,17 +84,17 @@
     <section id="settings-view" class="view" data-viewport="bottom">
 	  <section id="settings" class="skin-organic" role="region">
 		<header>
-		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="settings-done-text">Done</button></menu>
+		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="done">Done</button></menu>
 		  <h1 data-l10n-id="settings-heading">Settings</h1>
 		</header>
 
 		<section data-type="list">
-		  <header><h2 data-l10n-id="settings-track-file-text">Track file</h2></header>
+		  <header><h2 data-l10n-id="settings-route">Route</h2></header>
 
-		  <form id="trackfilepickitem" class="invisible" role="pick">
-			<button id="trackfilepick" type="button">Pick</button>
+		  <form id="trackfilepickitem" role="pick">
+			<button id="trackfilepick" data-l10n-id="pick" type="button">Pick</button>
 			<p>
-			  <input id="trackfilename" type="text" disabled="true" placeholder="None" value="" />
+			  <input id="trackfilename" data-l10n-id="settings-no-route" type="text" disabled="true" placeholder="None" value="" />
 			  <button id="trackfileclear" type="reset">Clear</button>
 			</p>
 		  </form>
