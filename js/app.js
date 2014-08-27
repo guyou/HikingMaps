@@ -155,7 +155,7 @@ var pathTracker = {
 		    }
 
 		    this._prevAlt = this._avgAlt;
-		} else if (Math.abs(elevDiff) >= 1.5 * coords.altitudeAccuracy) {
+		} else if (Math.abs(elevDiff) >= 2 * coords.altitudeAccuracy) {
 		    if (this._upOrDown >= 0) {
 			this._elevLoss -= elevDiff;
 			this._upOrDown = -1;
@@ -533,8 +533,8 @@ function createGpx()
 	var ts = path[idx][0];
 	var coord = path[idx][1];
 	data.push('<trkpt lat="' + coord.lat + '" lon="' + coord.lng + '">' +
-		  '<time>' + new Date(ts).toISOString() + '</time>' +
 		  ((coord.alt !== null) ? ('<ele>' + coord.alt + '</ele>') : '') +
+		  '<time>' + new Date(ts).toISOString() + '</time>' +
 		 '</trkpt>\n');
     }
 
