@@ -642,10 +642,8 @@ function InitializeApplication()
 				  data: { type: 'application/gpx+xml',
 					  multiple: false }});
 	a.onsuccess = function() {
-	    var fileNameNode = document.getElementById('trackfilename');
 	    var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
-	    fileNameNode.setAttribute('value', name);
-
+	    document.getElementById('trackfilename').setAttribute('value', name);
 	    NewTrackFile(a.result.blob);
 	};
 	a.onerror = function() { console.log('Failure when trying to pick an file'); };
@@ -653,8 +651,7 @@ function InitializeApplication()
 
     var trackFileClear = document.getElementById('trackfileclear');
     trackFileClear.addEventListener('click', function (e) {
-	var fileNameNode = document.getElementById('trackfilename');
-	fileNameNode.setAttribute('value', name);
+	document.getElementById('trackfilename').setAttribute('value', '');
 	ClearTrack();
     }, false);
 
