@@ -43,12 +43,12 @@
 	"es":
 	{
 	    "name": "HikingMaps",
-	    "description": "Map application for outdoor enthusiasts"
+	    "description": "Mapa de la aplicación para los amantes del aire libre"
 	},
 	"pt-BR":
 	{
 	    "name": "HikingMaps",
-	    "description": "Map application for outdoor enthusiasts"
+	    "description": "Mapa do aplicativo para entusiastas ao ar livre"
 	}
     },
     "permissions":
