@@ -396,9 +396,6 @@ function NewTrackFile(f)
     reader.onload = function(e) {
 	trackControl = new L.GPX(e.target.result,
 				 { async: true,
-				   circle_marker_options: { color: '#203090',
-							    opacity: 0.7,
-							    fillOpacity: 0.7 },
 				   polyline_options: { color: '#203090',
 						       opacity: 0.7 } }).on(
 	    'loaded', function(e) {

@@ -53,10 +53,8 @@ var _DEFAULT_MARKER_OPTS = {
 var _DEFAULT_POLYLINE_OPTS = {
 	color:'blue'
 };
-var _DEFAULT_CIRCLE_MARKER_OPTS = {
-  clickable: false,
-  fill: true,
-  radius: 3
+var _DEFAULT_WAYPOINT_MARKER_OPTS = {
+  clickable: false
 };
 L.GPX = L.FeatureGroup.extend({
   initialize: function(gpx, options) {
@@ -67,9 +65,9 @@ L.GPX = L.FeatureGroup.extend({
     options.polyline_options = this._merge_objs(
       _DEFAULT_POLYLINE_OPTS,
       options.polyline_options || {});
-    options.circle_marker_options = this._merge_objs(
-      _DEFAULT_CIRCLE_MARKER_OPTS,
-      options.circle_marker_options || {});
+    options.waypoint_marker_options = this._merge_objs(
+      _DEFAULT_WAYPOINT_MARKER_OPTS,
+      options.waypoint_marker_options || {});
 
     L.Util.setOptions(this, options);
 
@@ -259,7 +257,7 @@ L.GPX = L.FeatureGroup.extend({
     var coords = this._parse_trkseg(xml, options, 'wpt');
     if (coords.length > 0) {
       for (var idx in coords) {
-        var p = new L.CircleMarker(coords[idx], options.circle_marker_options);
+        var p = new L.Marker(coords[idx], options.waypoint_marker_options);
         this.fire('addpoint', { point: p });
         layers.push(p);
       }
