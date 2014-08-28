@@ -38,7 +38,17 @@
 	"en":
 	{
 	    "name": "HikingMaps",
-	    "description": "Map application for outdoor enthusiasts. Supports multiple map layers (OpenStreetMap, OVI and Google), tracks your hike and shows your current position from GPS"
+	    "description": "Map application for outdoor enthusiasts"
+	},
+	"es":
+	{
+	    "name": "HikingMaps",
+	    "description": "Map application for outdoor enthusiasts"
+	},
+	"pt-BR":
+	{
+	    "name": "HikingMaps",
+	    "description": "Map application for outdoor enthusiasts"
 	}
     },
     "permissions":
