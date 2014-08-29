@@ -1,3 +1,6 @@
+English
+=======
+
 Map application for outdoor enthusiasts that lets you:
 
  * Track your movements and collect statistics about your hike
@@ -11,9 +14,25 @@ MapQuest, OVI and Google) with offline storage of map data and lets
 you switch between metric and imperial units.
 
 
+Deutsch
+=======
 
-Portuguese
-==========
+Kartenanwendung für Outdoor-Enthusiasten mit folgenden Features:
+
+ * Verfolgt Ihre Bewegungung und sammelt Statistiken über Ihre Wanderung
+
+ * Exportieren von Strecken im GPX Format
+
+ * Importien von Routen im GPX Format
+
+Unterstützt mehrere Karten-Layer (OpenStreetMap, Thunderforest
+Outdoors, MapQuest, OVI and Google) mit Offline-Speicherung der
+Kartendaten und erlaubt die Anzeige in metrischen oder imperialen
+Einheiten.
+
+
+Portugués
+=========
 
 Esta aplicacao é vocacionada a entusiastas dos desporto ao ar livre.
 

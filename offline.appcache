@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v0.1
+# v0.2
 /index.html
 /js/app.js
 /js/gpx.js
@@ -10,6 +10,7 @@ CACHE MANIFEST
 /js/leaflet.js
 /js/pick.js
 /js/share.js
+/locales/de.properties
 /locales/en.properties
 /locales/en-US.properties
 /locales/es.properties

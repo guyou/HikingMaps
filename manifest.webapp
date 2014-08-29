@@ -35,6 +35,11 @@
     "default_locale": "en",
     "locales":
     {
+	"de":
+	{
+	    "name": "HikingMaps",
+	    "description": "Kartenanwendung für Outdoor-Enthusiasten"
+	},
 	"en":
 	{
 	    "name": "HikingMaps",
