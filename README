@@ -1,0 +1,29 @@
+Map application for outdoor enthusiasts that lets you:
+
+ * Track your movements and collect statistics about your hike
+
+ * Export your track in GPX format
+
+ * Import routes from GPX files
+
+Supports several map layers (OpenStreetMap, Thunderforest Outdoors,
+MapQuest, OVI and Google) with offline storage of map data and lets
+you switch between metric and imperial units.
+
+
+
+Portuguese
+==========
+
+Esta aplicacao é vocacionada a entusiastas dos desporto ao ar livre.
+
+ * Guarde os seus percursos ao mesmo tempo que recolhe dados do passeio.
+
+ * Exporte os seus percursos num formato GPX
+
+ * Importe os seus percursos num formato GPX
+
+Sao várias os tipos de mapas suportados (OpenStreetMap, Thunderforest
+Outdoors, MapQuest, OVI e Google) possibilitando o suporte offline
+dos dados do mapa. Poderá configurar as unidade metrica para o sistema
+métrico ou imperial.
