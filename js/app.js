@@ -210,6 +210,7 @@ var mapInfo = [
 ];
 
 var mainDB;
+var useCache = navigator.vendor == '';
 var map;
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
@@ -595,9 +596,9 @@ function InitializeApplication()
 	},
 
 	put: function (key, value, etag) {
-            var transaction = this._db.transaction(['tilecache', 'tilemeta'],
+	    var transaction = this._db.transaction(['tilecache', 'tilemeta'],
 						   'readwrite');
-            var tileRequest = transaction.objectStore('tilecache').put(value, key);
+	    var tileRequest = useCache ? transaction.objectStore('tilecache').put(value, key) : null;
 	    if (etag) {
 		var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
 	    }
