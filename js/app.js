@@ -226,7 +226,7 @@ var trackPolyline = null;
 var trackingHandler = null;
 
 
-function formatDistance (l, def='') {
+function formatDistance (l, def) {
     if (l == 0) {
 	return def;
     } else if (metricUnits) {
@@ -245,7 +245,7 @@ function formatDistance (l, def='') {
     }
 }
 
-function formatDuration (d, def='') {
+function formatDuration (d, def) {
     if (d == 0) {
 	return def;
     } else {
@@ -266,7 +266,7 @@ function formatDuration (d, def='') {
     }
 }
 
-function formatSpeed (s, def='') {
+function formatSpeed (s, def) {
     if (isNaN(s)) {
 	return def;
     } else if (metricUnits) {
@@ -276,7 +276,7 @@ function formatSpeed (s, def='') {
     }
 }
 
-function formatElevation (h, def='') {
+function formatElevation (h, def) {
     if (h == 0) {
 	return def;
     } else if (metricUnits) {
@@ -415,7 +415,7 @@ function PositionUpdated(e)
 	map.panTo(pathTracker.getPosition());
 
 	var len = pathTracker.getLength();
-	document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
+	document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength(), '');
 
 	directionIcon.setDirection(e.coords.heading);
     } else if (isNewSeg) {
@@ -495,9 +495,9 @@ function EndSettings()
     window.localStorage.setItem('metric', metricUnits.toString());
 
     if ((trackControl !== null) && (trackControl.get_distance() > 0)) {
-	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance()) + ')';
+	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance(), '') + ')';
     }
-    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength());
+    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength(), '');
 }
 
 function UpdateStatistics()
