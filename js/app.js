@@ -211,7 +211,6 @@ var mapInfo = [
 
 var mainDB;
 var map;
-var firefoxOS = /Mobile;.*Firefox\/(\d+)/.exec(navigator.userAgent);
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 var activeLayer = (window.localStorage.getItem('active-layer') || '0');
@@ -666,7 +665,7 @@ function InitializeApplication()
 	NewTrackFile(e.target.files[0]);
     }, false);
 
-    document.getElementById(firefoxOS ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
+    document.getElementById((window.MozActivity !== undefined) ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
 
     var mapLayerSelect = document.getElementById('maplayerselect');
     for (var mapIdx in mapInfo) {
