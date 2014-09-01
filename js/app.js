@@ -392,17 +392,20 @@ function NewTrackFile(f)
 {
     ClearTrack();
 
-    reader = new FileReader();
-    reader.onload = function(e) {
-	trackControl = new L.GPX(e.target.result,
-				 { async: true,
-				   polyline_options: { color: '#203090',
-						       opacity: 0.7 } }).on(
-	    'loaded', function(e) {
-		map.fitBounds(e.target.getBounds());
-	    }).addTo(map);
-    };
-    reader.readAsText(f);
+    if (f) {
+	reader = new FileReader();
+	reader.onload = function(e) {
+	    trackControl = new L.GPX(e.target.result,
+				     { async: true,
+				       polyline_options: { color: '#203090',
+							   opacity: 0.7 } }).on(
+							       'loaded', function(e) {
+								   map.fitBounds(e.target.getBounds());
+							       }).addTo(map);
+	};
+
+	reader.readAsText(f);
+    }
 }
 
 function PositionUpdated(e)
