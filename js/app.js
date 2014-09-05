@@ -41,12 +41,15 @@ var pathTracker = {
     _moveDuration: 0,
     _waitDuration: 0,
 
-    _elevGain: 0,
-    _elevLoss: 0,
     _length: 0,
 
-    _upOrDown : 0,
-    _prevAlt : null,
+    _elevGain: 0,
+    _elevLoss: 0,
+
+    _minElev: Infinity,
+    _maxElev: -Infinity,
+
+    _prevAlt : [-Infinity, Infinity],
 
     getPath: function () {
 	return this._path;
@@ -56,14 +59,20 @@ var pathTracker = {
 	return this._length;
     },
 
+    getMinElevation: function () {
+	return (this._minElev <= this._maxElev) ? this._minElev : Infinity;
+    },
+
+    getMaxElevation: function () {
+	return (this._minElev <= this._maxElev) ? this._maxElev : -Infinity;
+    },
+
     getElevationGain: function () {
-	return this._elevGain +
-	    (((this._prevAlt !== null) && (this._curPos !== null) && (this._curPos.alt > this._prevAlt)) ? (this._curPos.alt - this._prevAlt) : 0);
+	return this._elevGain;
     },
 
     getElevationLoss: function () {
-	return this._elevLoss +
-	    (((this._prevAlt !== null) && (this._curPos !== null) && (this._curPos.alt < this._prevAlt)) ? (this._prevAlt - this._curPos.alt) : 0);
+	return this._elevLoss;
     },
 
     getPosition: function () {
@@ -89,47 +98,43 @@ var pathTracker = {
 	this._curPos = null;
 	this._moveDuration = 0;
 	this._waitDuration = 0;
+	this._length = 0;
 	this._elevGain = 0;
 	this._elevLoss = 0;
-	this._length = 0;
-	this._upOrDown = 0;
-	this._curAlt = null;
-	this._prevAlt = null;
+	this._minElev = Infinity;
+	this._maxElev = -Infinity;
+	this._prevAlt = [-Infinity, Infinity];
     },
 
     start: function () {
 	this._curTimestamp = null;
 	this._moveTimestamp = null;
-	this._curAlt = null;
-	this._upOrDown = 0;
+	this._prevAlt = [-Infinity, Infinity];
     },
 
     onPosition: function (isStationary, ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude,
 				    coords.altitude);
-	var prevPos = (this._path.length > 0) ?
-	    this._path[this._path.length - 1][1] : null;
-
-	if (this._curPos.alt !== null) {
-	    this._curAlt = (this._curAlt === null) ?
-		this._curPos.alt : (this._curAlt + this._curPos.alt) / 2;
-
-	    if (this._upOrDown == 0) {
-		if ((this._prevAlt !== null) &&
-		    (this._curPos.alt != this._prevAlt) &&
-		    (Math.abs(this._curPos.alt - this._prevAlt) < coords.altitudeAccuracy / 8)) {
-		    this._upOrDown = (this._curPos.alt >= this._prevAlt) ? 1 : -1;
-		    this._prevAlt = this._curAlt;
-		} else {
-		    this._prevAlt = this._curPos.alt;
-		}
-	    }
-	}
-
 	if (! isStationary)
 	{
+	    var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
+				       ? coords.altitudeAccuracy
+				       : 0
+				       , 4);
+	    var minAlt = (coords.altitude !== null)
+		? (coords.altitude - altAccuracy) : -Infinity;
+	    var maxAlt = (coords.altitude !== null)
+		? (coords.altitude + altAccuracy) : +Infinity;
+	    var curAlt = [minAlt, maxAlt];
+
+	    this._minElev = Math.min(this._minElev, curAlt[1]);
+	    this._maxElev = Math.max(this._maxElev, curAlt[0]);
+
 	    this._path.push([ts, this._curPos]);
 	    if (this._curTimestamp !== null) {
+		var prevPos = (this._path.length > 0) ?
+		    this._path[this._path.length - 1][1] : null;
+
 		if (prevPos !== null) {
 		    this._length += prevPos.distanceTo(this._curPos);
 		}
@@ -143,31 +148,18 @@ var pathTracker = {
 		    this._moveDuration += ts - this._curTimestamp;
 		}
 
-		if (this._upOrDown != 0) {
-		    var elevDiff = this._curAlt - this._prevAlt;
+		curAlt[0] = Math.min(maxAlt, Math.max(this._prevAlt[0], minAlt));
+		curAlt[1] = Math.max(minAlt, Math.min(this._prevAlt[1], maxAlt));
 
-		    if (elevDiff * this._upOrDown >= 0) {
-			if (this._upOrDown >= 0) {
-			    this._elevGain += elevDiff;
-			} else {
-			    this._elevLoss -= elevDiff;
-			}
-
-			this._prevAlt = this._curAlt;
-		    } else if (Math.abs(elevDiff) >= 2 * coords.altitudeAccuracy) {
-			if (this._upOrDown >= 0) {
-			    this._elevLoss -= elevDiff;
-			    this._upOrDown = -1;
-			} else {
-			    this._elevGain += elevDiff;
-			    this._upOrDown = 1;
-			}
-
-			this._prevAlt = this._curAlt;
-		    }
+		if (curAlt[0] > this._prevAlt[1]) {
+		    this._elevGain += curAlt[0] - this._prevAlt[1];
+		}
+		if (curAlt[1] < this._prevAlt[0]) {
+		    this._elevLoss -= curAlt[1] - this._prevAlt[0];
 		}
 	    }
 
+	    this._prevAlt = curAlt;
 	    this._moveTimestamp = ts;
 	} else {
 	    if (this._curTimestamp !== null) {
@@ -506,12 +498,25 @@ function EndSettings()
 
 function UpdateStatistics()
 {
-    document.getElementById('stats-distance').textContent = formatDistance(pathTracker.getLength(), '-');
-    document.getElementById('stats-total-time').textContent = formatDuration(pathTracker.getTotalDuration(), '-');
-    document.getElementById('stats-moving-time').textContent = formatDuration(pathTracker.getMoveDuration(), '-');
-    document.getElementById('stats-moving-speed').textContent = formatSpeed(pathTracker.getLength() / pathTracker.getMoveDuration(), '-');
-    document.getElementById('stats-elevation-gain').textContent = formatElevation(pathTracker.getElevationGain(), '-');
-    document.getElementById('stats-elevation-loss').textContent = formatElevation(pathTracker.getElevationLoss(), '-');
+    document.getElementById('stats-distance').textContent =
+	formatDistance(pathTracker.getLength(), '-');
+    document.getElementById('stats-total-time').textContent =
+	formatDuration(pathTracker.getTotalDuration(), '-');
+    document.getElementById('stats-moving-time').textContent =
+	formatDuration(pathTracker.getMoveDuration(), '-');
+    document.getElementById('stats-moving-speed').textContent =
+	formatSpeed(pathTracker.getLength() / pathTracker.getMoveDuration(),
+		    '-');
+    document.getElementById('stats-min-elevation').textContent =
+	(pathTracker.getMinElevation() === Infinity) ? '-' :
+	formatElevation(pathTracker.getMinElevation(), '-');
+    document.getElementById('stats-max-elevation').textContent =
+	(pathTracker.getMaxElevation() === -Infinity) ? '-' :
+	formatElevation(pathTracker.getMaxElevation(), '-');
+    document.getElementById('stats-elevation-gain').textContent =
+	formatElevation(pathTracker.getElevationGain(), '-');
+    document.getElementById('stats-elevation-loss').textContent =
+	formatElevation(pathTracker.getElevationLoss(), '-');
 }
 
 function OpenCloseStats()
