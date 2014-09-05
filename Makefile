@@ -16,7 +16,7 @@ manifest.webapp:
 	@sed -i -e 's/"version"\s*:\s*"[0-9.]\+"/"version": "$(VERSION)"/' $@
 
 offline.appcache:
-	@{ echo "CACHE MANIFEST" && echo "# v$(VERSION)" && \
+	@{ echo "CACHE MANIFEST" && echo "# v0.1" && \
 	find . \
 		$(foreach fname,$(DONT_PACKAGE) $(IGNORE_APPCACHE),-name "$(fname)" -prune -o) \
 		-type f -print | \
