@@ -3,7 +3,7 @@
 # http://cmeerw.org
 #
 
-DONT_PACKAGE=.svn Makefile README hikingmaps.svg manifest.json screenshots
+DONT_PACKAGE=.svn Makefile README hikingmaps.svg manifest.json screenshots tests
 
 IGNORE_APPCACHE=LICENSE hikingmaps*.png manifest.webapp offline.appcache
 
