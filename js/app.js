@@ -127,8 +127,12 @@ var pathTracker = {
 		? (coords.altitude + altAccuracy) : +Infinity;
 	    var curAlt = [minAlt, maxAlt];
 
-	    this._minElev = Math.min(this._minElev, curAlt[1]);
-	    this._maxElev = Math.max(this._maxElev, curAlt[0]);
+	    this._minElev = Math.min(this._minElev,
+				     (coords.altitude !== null)
+				     ? coords.altitude : Infinity);
+	    this._maxElev = Math.max(this._maxElev,
+				     (coords.altitude !== null)
+				     ? coords.altitude : -Infinity);
 
 	    this._path.push([ts, this._curPos]);
 	    if (this._curTimestamp !== null) {
