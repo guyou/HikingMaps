@@ -206,7 +206,6 @@ var mapInfo = [
 ];
 
 var mainDB;
-var useCache = navigator.vendor == '';
 var map;
 var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
@@ -610,7 +609,7 @@ function InitializeApplication()
 	put: function (key, value, etag) {
 	    var transaction = this._db.transaction(['tilecache', 'tilemeta'],
 						   'readwrite');
-	    var tileRequest = useCache ? transaction.objectStore('tilecache').put(value, key) : null;
+	    var tileRequest = transaction.objectStore('tilecache').put(value, key);
 	    if (etag) {
 		var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
 	    }
