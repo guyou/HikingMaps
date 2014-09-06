@@ -7,12 +7,15 @@ DONT_PACKAGE=.svn Makefile README hikingmaps.svg manifest.json screenshots tests
 
 IGNORE_APPCACHE=LICENSE hikingmaps*.png manifest.webapp offline.appcache
 
-.PHONY:	manifest.webapp offline.appcache
+.PHONY:	manifest.json manifest.webapp offline.appcache
 
 all:
 	@echo "Nothing to do"
 
 manifest.webapp:
+	@sed -i -e 's/"version"\s*:\s*"[0-9.]\+"/"version": "$(VERSION)"/' $@
+
+manifest.json:
 	@sed -i -e 's/"version"\s*:\s*"[0-9.]\+"/"version": "$(VERSION)"/' $@
 
 offline.appcache:
@@ -23,7 +26,7 @@ offline.appcache:
 	cut -b2- | sort; } > $@
 
 ifdef VERSION
-release:	manifest.webapp offline.appcache
+release:	manifest.json manifest.webapp offline.appcache
 	@echo "Building HikingMaps-$(VERSION).zip"
 	@rm -f "../HikingMaps-$(VERSION).zip"
 	@{ \
