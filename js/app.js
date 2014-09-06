@@ -117,6 +117,10 @@ var pathTracker = {
 				    coords.altitude);
 	if (! isStationary)
 	{
+	    var prevPos = (this._path.length > 0) ?
+		this._path[this._path.length - 1][1] : null;
+	    this._path.push([ts, this._curPos]);
+
 	    var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
 				       ? coords.altitudeAccuracy
 				       : 0
@@ -134,11 +138,7 @@ var pathTracker = {
 				     (coords.altitude !== null)
 				     ? coords.altitude : -Infinity);
 
-	    this._path.push([ts, this._curPos]);
 	    if (this._curTimestamp !== null) {
-		var prevPos = (this._path.length > 0) ?
-		    this._path[this._path.length - 1][1] : null;
-
 		if (prevPos !== null) {
 		    this._length += prevPos.distanceTo(this._curPos);
 		}
