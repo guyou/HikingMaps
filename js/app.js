@@ -486,7 +486,9 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.remove('invisible');
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
-	document.getElementById('share').classList.remove('invisible');
+	if (window.MozActivity !== undefined) {
+	    document.getElementById('share').classList.remove('invisible');
+	}
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
@@ -494,7 +496,9 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.add('invisible');
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
-	document.getElementById('share').classList.add('invisible');
+	if (window.MozActivity !== undefined) {
+	    document.getElementById('share').classList.add('invisible');
+	}
 
 	map.removeLayer(positionCircle);
 	pathTracker.start();
