@@ -31,6 +31,56 @@ var ArrowIcon = L.Icon.extend({
     }
 });
 
+var FunctionalTileLayer = L.TileLayer.extend({
+    _tileFn: null,
+
+    initialize: function (url, tileFn, options) {
+	this._tileFn = tileFn;
+	L.TileLayer.prototype.initialize.call(this, url, options);
+    },
+
+    createTile: function (coords, done) {
+	var tile = document.createElement('img');
+
+	if (this.options.crossOrigin) {
+	    tile.crossOrigin = '';
+	}
+
+	/*
+	  Alt tag is set to empty string to keep screen readers from reading URL and for compliance reasons
+	  http://www.w3.org/TR/WCAG20-TECHS/H67
+	*/
+	tile.alt = '';
+
+	var result = this._tileFn(tile, coords);
+	if (typeof result === 'string') {
+	    tile.onload = L.bind(this._tileOnLoad, this, done, tile);
+	    tile.onerror = L.bind(this._tileOnError, this, done, tile);
+	    tile.src = result;
+	} else if (typeof result.then === 'function') {
+	    // Assume we are dealing with a promise.
+	    var self = this;
+	    result.then(function (url, doneFn) {
+		tile.onload = function () {
+		    if (doneFn) {
+			doneFn(null, tile);
+		    }
+		    self._tileOnLoad(done, tile);
+		};
+		tile.onerror = function (e) {
+		    if (doneFn) {
+			doneFn(e, tile);
+		    }
+		    self._tileOnError(done, tile, e);
+		};
+		tile.src = url;
+	    });
+	}
+
+	return tile;
+    }
+});
+
 var pathTracker = {
     _path: [],
 
@@ -283,12 +333,8 @@ function formatElevation (h, def) {
 }
 
 function createMapLayer (cacheDB, info) {
-    var cacheLayer = new L.TileLayer.Functional(function (view) {
-	var url = info.baseUrl
-            .replace('{z}', view.zoom)
-            .replace('{x}', view.tile.column)
-            .replace('{y}', view.tile.row)
-            .replace('{s}', view.subdomain);
+    var cacheLayer = new FunctionalTileLayer(info.baseUrl, function (tile, coords) {
+	var url = this.getTileUrl(coords);
 
 	var deferred = {
 	    _fn: null,
@@ -300,10 +346,11 @@ function createMapLayer (cacheDB, info) {
 	    resolve: function (arg) {
 		if (arg !== undefined) {
 		    var imgURL = window.URL.createObjectURL(arg);
-		    this._fn(imgURL);
-		    window.URL.revokeObjectURL(imgURL);
+		    this._fn(imgURL, function (err, tile) {
+			window.URL.revokeObjectURL(imgURL);
+		    });
 		} else {
-		    this._fn(null);
+		    this._fn(null, null);
 		}
 	    }
 	};
