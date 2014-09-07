@@ -1,26 +1,28 @@
-function onSave() {
+function onSave(activity, sdcard, blob) {
     var fileName = document.getElementById('filename').value;
     var request = sdcard.addNamed(blob, 'tracks/' + fileName + '.gpx');
     request.onsuccess = function () {
 	var name = this.result;
-	console.log('File "' + name + '" successfully written');
-	a.postResult(null);
+	activity.postResult(null);
     }
     request.onerror = function () {
-	console.warn('Unable to write the file: ' + this.error);
-	a.postError('Unable to write file');
+	activity.postError('Unable to write file');
     }
 }
 
-window.onsubmit = onSave;
-
-navigator.mozSetMessageHandler('activity', function(a) {
+navigator.mozSetMessageHandler('activity', function(activity) {
     var sdcard = navigator.getDeviceStorage('sdcard');
-    var blob = a.source.data.blobs[0];
+    var blob = activity.source.data.blobs[0];
 
     document.getElementById('close-btn').addEventListener('click', function () {
-	a.postError('closed');
+	activity.postError('closed');
     }, false);
 
-    document.getElementById('save-btn').addEventListener('click', onSave, false);
+    document.getElementById('save-btn').addEventListener('click', function () {
+	onSave(activity, sdcard, blob);
+    }, false);
+    window.onsubmit = function () {
+	onSave(activity, sdcard, blob);
+	return false;
+    }
 });

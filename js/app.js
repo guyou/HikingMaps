@@ -518,7 +518,9 @@ function WayDelete()
     map.removeLayer(positionMarker);
     map.removeLayer(positionCircle);
 
-    document.getElementById('share').classList.add('invisible');
+    if (window.MozActivity !== undefined) {
+	document.getElementById('share').classList.add('invisible');
+    }
 
     pathTracker.reset();
     document.getElementById('path-length-display').textContent = '';
