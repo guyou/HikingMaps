@@ -486,9 +486,7 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.remove('invisible');
 	document.getElementById('locateplaypause').classList.remove('pause-btn');
 	document.getElementById('locateplaypause').classList.add('play-btn');
-	if (window.MozActivity !== undefined) {
-	    document.getElementById('share').classList.remove('invisible');
-	}
+	document.getElementById('share').classList.remove('invisible');
 
 	navigator.geolocation.clearWatch(trackingHandler);
 	trackingHandler = null;
@@ -496,8 +494,12 @@ function PositionUpdatePlayPause()
 	document.getElementById('locate').classList.add('invisible');
 	document.getElementById('locateplaypause').classList.add('pause-btn');
 	document.getElementById('locateplaypause').classList.remove('play-btn');
-	if (window.MozActivity !== undefined) {
-	    document.getElementById('share').classList.add('invisible');
+
+	var shareElem = document.getElementById('share')
+	shareElem.classList.add('invisible');
+	if (shareElem.hasAttribute('href')) {
+	    URL.revokeObjectURL(shareElem.getAttribute('href'));
+	    shareElem.removeAttribute('href');
 	}
 
 	map.removeLayer(positionCircle);
@@ -518,8 +520,11 @@ function WayDelete()
     map.removeLayer(positionMarker);
     map.removeLayer(positionCircle);
 
-    if (window.MozActivity !== undefined) {
-	document.getElementById('share').classList.add('invisible');
+    var shareElem = document.getElementById('share')
+    shareElem.classList.add('invisible');
+    if (shareElem.hasAttribute('href')) {
+	URL.revokeObjectURL(shareElem.getAttribute('href'));
+	shareElem.removeAttribute('href');
     }
 
     pathTracker.reset();
@@ -623,6 +628,16 @@ function shareGpx(blob)
 		      } });
 }
 
+function SaveTrack()
+{
+    var elem = document.getElementById('share');
+    if (! elem.hasAttribute('href')) {
+	var gpxUrl = URL.createObjectURL(createGpx());
+	elem.setAttribute('href', gpxUrl);
+	elem.setAttribute('download', new Date().toISOString() + '.gpx');
+    }
+}
+
 function ShareTrack()
 {
     shareGpx(createGpx());
@@ -698,7 +713,10 @@ function InitializeApplication()
     document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
     document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
     document.getElementById('waydelete').addEventListener('click', WayDelete, false);
-    document.getElementById('share').addEventListener('click', ShareTrack, false);
+    document.getElementById('share').addEventListener('click', window.MozActivity
+						      ? ShareTrack
+						      : SaveTrack,
+						      false);
     document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
     document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
     document.getElementById('statsbutton').addEventListener('click', OpenCloseStats, false);
