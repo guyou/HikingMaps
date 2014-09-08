@@ -278,3 +278,8 @@ form[role="pick"] p textarea + button[type="reset"] {
   opacity: 1;
   pointer-events: all;
 }
+
+button, [role="button"], .button {
+  box-sizing: border-box;
+  cursor: default;
+}
