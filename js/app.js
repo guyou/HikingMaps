@@ -1,22 +1,15 @@
 var ArrowIcon = L.Icon.extend({
     options: {
-	iconSize: [16, 16], // also can be set through CSS
-	/*
-	  iconAnchor: (Point)
-	  popupAnchor: (Point)
-	  html: (String)
-	  bgPos: (Point)
-	*/
+	iconSize: [16, 16],
 	direction: 0,
 	className: null,
 	html: false
     },
 
     createIcon: function (oldIcon) {
-	var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div'),
-	options = this.options;
-
-	div.innerHTML = '<div class="arrow-icon" style="transform: rotate(' + options.direction + 'deg)" />';
+	var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div');
+	div.innerHTML = '<div class="arrow-icon" style="transform: rotate(' +
+	    this.options.direction + 'deg)" />';
 	this._setIconStyles(div, 'icon');
 
 	return div;
@@ -45,14 +38,9 @@ var FunctionalTileLayer = L.TileLayer.extend({
 	if (this.options.crossOrigin) {
 	    tile.crossOrigin = '';
 	}
-
-	/*
-	  Alt tag is set to empty string to keep screen readers from reading URL and for compliance reasons
-	  http://www.w3.org/TR/WCAG20-TECHS/H67
-	*/
 	tile.alt = '';
 
-	var result = this._tileFn(tile, coords);
+	var result = this._tileFn(coords);
 	if (typeof result === 'string') {
 	    tile.onload = L.bind(this._tileOnLoad, this, done, tile);
 	    tile.onerror = L.bind(this._tileOnError, this, done, tile);
@@ -337,7 +325,7 @@ function formatElevation (h, def) {
 }
 
 function createMapLayer (cacheDB, info) {
-    var cacheLayer = new FunctionalTileLayer(info.baseUrl, function (tile, coords) {
+    var cacheLayer = new FunctionalTileLayer(info.baseUrl, function (coords) {
 	var url = this.getTileUrl(coords);
 
 	var deferred = {
