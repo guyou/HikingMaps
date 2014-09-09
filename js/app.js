@@ -73,7 +73,11 @@ var FunctionalTileLayer = L.TileLayer.extend({
 		    }
 		    self._tileOnError(done, tile, e);
 		};
-		tile.src = url;
+		if (url) {
+		    tile.src = url;
+		} else {
+		    self._tileOnLoad(done, tile);
+		}
 	    });
 	}
 
