@@ -25,8 +25,6 @@ var ArrowIcon = L.Icon.extend({
 });
 
 var FunctionalTileLayer = L.TileLayer.extend({
-    _tileFn: null,
-
     initialize: function (url, tileFn, options) {
 	this._tileFn = tileFn;
 	L.TileLayer.prototype.initialize.call(this, url, options);
@@ -73,25 +71,93 @@ var FunctionalTileLayer = L.TileLayer.extend({
     }
 });
 
-var pathTracker = {
-    _path: [],
+var CachedTileLayer = FunctionalTileLayer.extend({
+    initialize: function (url, db, options) {
+	this._db = db;
+	this._offline = false;
+	FunctionalTileLayer.prototype.initialize.call(this, url, this._getTileAsync, options);
+    },
 
-    _curTimestamp: null,
-    _moveTimestamp : null,
-    _curPos: null,
+    setOffline: function (val) {
+	this._offline = val;
+    },
 
-    _moveDuration: 0,
-    _waitDuration: 0,
+    _getTileAsync : function (coords) {
+	var url = this.getTileUrl(coords);
 
-    _length: 0,
+	var deferred = {
+	    _fn: null,
 
-    _elevGain: 0,
-    _elevLoss: 0,
+	    then: function (fn) {
+		this._fn = fn;
+	    },
 
-    _minElev: Infinity,
-    _maxElev: -Infinity,
+	    resolve: function (arg) {
+		if (arg !== undefined) {
+		    var imgURL = window.URL.createObjectURL(arg);
+		    this._fn(imgURL, function (err, tile) {
+			window.URL.revokeObjectURL(imgURL);
+		    });
+		} else {
+		    this._fn(null, null);
+		}
+	    }
+	};
 
-    _prevAlt : [-Infinity, Infinity],
+	if (this._offline) {
+	    this._db.get(url, function (arg) {
+		deferred.resolve(arg);
+	    });
+	} else {
+	    var self = this;
+	    this._db.getETag(url, function (arg) {
+		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
+		xhr.open('GET', url, true);
+		if (arg) {
+		    xhr.setRequestHeader('If-None-Match', arg);
+		}
+		xhr.responseType = 'blob';
+		xhr.addEventListener('load', function () {
+		    if (xhr.status === 200) {
+			var blob = xhr.response;
+			self._db.put(url, blob, xhr.getResponseHeader('ETag'));
+			deferred.resolve(blob);
+		    } else {
+			self._db.get(url, function (arg) {
+			    deferred.resolve(arg);
+			});
+		    }
+		}, false);
+		xhr.send();
+	    });
+	}
+
+	return deferred;
+    }
+});
+
+
+var PathTracker = L.Class.extend ({
+    initialize: function () {
+	this._path = [];
+	this._curTimestamp = null;
+	this._moveTimestamp = null;
+	this._curPos = null;
+	this._moveDuration = 0;
+	this._waitDuration = 0;
+	this._length = 0;
+	this._elevGain = 0;
+	this._elevLoss = 0;
+	this._minElev = Infinity;
+	this._maxElev = -Infinity;
+	this._prevAlt = [-Infinity, Infinity];
+    },
+
+    start: function () {
+	this._curTimestamp = null;
+	this._moveTimestamp = null;
+	this._prevAlt = [-Infinity, Infinity];
+    },
 
     getPath: function () {
 	return this._path;
@@ -131,27 +197,6 @@ var pathTracker = {
 
     getWaitDuration: function () {
 	return this._waitDuration;
-    },
-
-    reset: function () {
-	this._path = [];
-	this._curTimestamp = null;
-	this._moveTimestamp = null;
-	this._curPos = null;
-	this._moveDuration = 0;
-	this._waitDuration = 0;
-	this._length = 0;
-	this._elevGain = 0;
-	this._elevLoss = 0;
-	this._minElev = Infinity;
-	this._maxElev = -Infinity;
-	this._prevAlt = [-Infinity, Infinity];
-    },
-
-    start: function () {
-	this._curTimestamp = null;
-	this._moveTimestamp = null;
-	this._prevAlt = [-Infinity, Infinity];
     },
 
     onPosition: function (isStationary, ts, coords) {
@@ -217,7 +262,7 @@ var pathTracker = {
 	this._curTimestamp = ts;
 	return result;
     }
-};
+});
 
 
 var mapInfo = [
@@ -247,245 +292,368 @@ var mapInfo = [
       attribution : 'Map data and imagery &copy; <a href="http://maps.google.com/">Google</a>' }
 ];
 
-var mainDB;
-var map;
-var metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
-var offline = (window.localStorage.getItem('offline') || 'false') == 'true';
-var activeLayer = (window.localStorage.getItem('active-layer') || '0');
-var mapLayer = null;
+var TileCacheDb = L.Class.extend({
+    initialize: function (db) {
+	this._db = db;
+    },
 
-var positionIcon = new L.Icon.Default();
-var directionIcon = new ArrowIcon();
-var positionMarker = null;
-var positionCircle = null;
+    clear: function () {
+	var transaction = this._db.transaction(['tilecache', 'tilemeta'],
+					       'readwrite');
+	transaction.objectStore('tilemeta').clear();
+	transaction.objectStore('tilecache').clear();
+    },
 
-var trackControl = null;
-var trackPolyline = null;
-var trackingHandler = null;
-
-
-function formatDistance (l, def) {
-    if (l == 0) {
-	return def;
-    } else if (metricUnits) {
-	if (l < 1000) {
-	    return l.toFixed(0) + ' m';
-	} else {
-	    return (l / 1000).toFixed(1) + ' km';
+    put: function (key, value, etag) {
+	var transaction = this._db.transaction(['tilecache', 'tilemeta'],
+					       'readwrite');
+	var tileRequest = transaction.objectStore('tilecache').put(value, key);
+	if (etag) {
+	    var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
 	}
-    } else {
-	var yards = l / 0.9144;
-	if (yards < 440) {
-	    return yards.toFixed(0) + ' yd';
-	} else {
-	    return (yards / 1760).toFixed(yards < 1760 ? 2 : 1) + ' m';
+    },
+
+    get: function (key, fn) {
+	var objStore = 'tilecache';
+	var transaction = this._db.transaction([objStore]);
+	var request = transaction.objectStore(objStore).get(key);
+	request.onsuccess = function (e) {
+            var blob = e.target.result;
+	    fn(blob);
+	};
+	request.onerror = function (e) { };
+    },
+
+    getETag: function (key, fn) {
+	var transaction = this._db.transaction(['tilemeta']);
+	var request = transaction.objectStore('tilemeta').get(key);
+	request.onsuccess = function (e) {
+            var etag = e.target.result;
+	    fn(etag);
+	};
+	request.onerror = function (e) {
+	    fn(null);
+	};
+    },
+});
+
+
+var Application = L.Class.extend({
+    initialize: function () {
+	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
+	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
+	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
+
+	this._db = null;
+	this._map = null;
+	this._mapLayer = null;
+
+	this._positionIcon = new L.Icon.Default();
+	this._directionIcon = new ArrowIcon();
+	this._positionMarker = null;
+	this._positionCircle = null;
+
+	this._trackControl = null;
+	this._trackPolyline = null;
+	this._trackingHandler = null;
+	this._pathTracker = new PathTracker();
+
+	this._initDb();
+    },
+
+    _initDb: function () {
+	var request = window.indexedDB.open('HikingMaps', 1);
+	var self = this;
+	request.onerror = function(event)
+	{
+	    self._initApp();
+	};
+	request.onsuccess = function(event)
+	{
+	    self._db = request.result;
+	    self._initApp();
+	};
+	request.onupgradeneeded = function(event)
+	{
+	    var db = request.result;
+	    var ver = db.version || 0; // version is empty string for a new DB
+	    if (!db.objectStoreNames.contains('tilecache'))
+	    {
+		var tilecacheStore = db.createObjectStore('tilecache');
+	    }
+	    if (!db.objectStoreNames.contains('tilemeta'))
+	    {
+		var tilemetaStore = db.createObjectStore('tilemeta');
+	    }
+	    db.onversionchange = function(event)
+	    {
+		db.close();
+		self._initDb();
+	    };
+	};
+    },
+
+    _initApp: function () {
+	var self = this;
+
+	this._map = L.map('map').setView([51.505, -0.09], 13);
+	this._positionMarker = L.marker([51.505, -0.09], { icon : this._positionIcon });
+	this._positionCircle = L.circle([51.505, -0.09], 0);
+
+	this._map.on('locationfound', function(e) {
+	    document.getElementById('locate').dataset.state = '';
+	    self._positionMarker.setIcon(self._positionIcon);
+	    self._positionMarker.setLatLng(e.latlng);
+	    self._positionCircle.setLatLng(e.latlng);
+	    self._positionCircle.setRadius(e.accuracy / 2);
+
+	    self._positionMarker.addTo(self._map);
+	    self._positionCircle.addTo(self._map);
+	});
+
+	this._map.on('locationerror', function(e) {
+	    document.getElementById('locate').dataset.state = '';
+	});
+
+	var cacheDB = new TileCacheDb(this._db);
+	L.control.scale().addTo(this._map);
+
+	this._trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(this._map);
+	document.getElementById('locate').addEventListener('click',
+							   L.bind(this.ManualPositionUpdate, this), false);
+	document.getElementById('locateplaypause').addEventListener('click', L.bind(this.PositionUpdatePlayPause, this), false);
+	document.getElementById('waydelete').addEventListener('click', L.bind(this.WayDelete, this), false);
+	document.getElementById('share').addEventListener('click', window.MozActivity
+							  ? L.bind(this.ShareTrack, this)
+							  : L.bind(this.SaveTrack, this),
+							  false);
+	document.getElementById('menubutton').addEventListener('click', L.bind(this.OpenSettings, this), false);
+	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.EndSettings, this), false);
+	document.getElementById('statsbutton').addEventListener('click', L.bind(this.OpenCloseStats, this), false);
+	document.getElementById('clear-cache').addEventListener('click', function () {
+	    cacheDB.clear();
+	}, false);
+
+	var trackFilePick = document.getElementById('trackfilepick');
+	trackFilePick.addEventListener('click', function (e) {
+	    var a = new MozActivity({ name: 'pick',
+				      data: { type: 'application/gpx+xml',
+					      multiple: false }});
+	    a.onsuccess = function() {
+		var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
+		document.getElementById('trackfilename').setAttribute('value', name);
+		self.NewTrackFile(a.result.blob);
+	    };
+	    a.onerror = function() { console.log('Failure when trying to pick an file'); };
+	}, false);
+
+	var trackFileClear = document.getElementById('trackfileclear');
+	trackFileClear.addEventListener('click', function (e) {
+	    document.getElementById('trackfilename').setAttribute('value', '');
+	    self.ClearTrack();
+	}, false);
+
+	var trackFileInput = document.getElementById('trackfile');
+	trackFileInput.addEventListener('change', function (e) {
+	    self.NewTrackFile(e.target.files[0]);
+	}, false);
+
+	document.getElementById((window.MozActivity !== undefined) ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
+
+	var mapLayerSelect = document.getElementById('maplayerselect');
+	for (var mapIdx in mapInfo) {
+	    mapLayerSelect.options[mapLayerSelect.options.length] = new Option(mapInfo[mapIdx].name, mapIdx);
 	}
-    }
-}
 
-function formatDuration (d, def) {
-    if (d == 0) {
-	return def;
-    } else {
-	var seconds = (Math.floor(d / 1000) % 60).toFixed(0);
-	var minutes = (Math.floor(d / 60000) % 60).toFixed(0);
-	var hours = Math.floor(d / 3600000).toFixed(0);
+	if (this._activeLayer < mapLayerSelect.options.length) {
+	    mapLayerSelect.options[this._activeLayer].selected = 'true';
+	} else {
+	    this._activeLayer = 0;
+	}
 
-	if (hours == '0') {
-	    if (minutes == '0') {
-		return seconds + 's';
+	this._mapLayer = this.createMapLayer (cacheDB, mapInfo[this._activeLayer]);
+	this._mapLayer.setOffline(this._offline);
+	this._mapLayer.addTo(this._map);
+
+	document.getElementById('maplayerselect').addEventListener('change', function (e) {
+	    self._activeLayer = mapLayerSelect.value;
+	    window.localStorage.setItem('active-layer', self._activeLayer.toString());
+
+	    self._map.removeLayer(self._mapLayer);
+	    self._mapLayer = self.createMapLayer (cacheDB, mapInfo[self._activeLayer]);
+	    self._mapLayer.setOffline(self._offline);
+	    self._mapLayer.addTo(self._map);
+	});
+    },
+
+    formatDistance: function (l, def) {
+	if (l == 0) {
+	    return def;
+	} else if (this._metricUnits) {
+	    if (l < 1000) {
+		return l.toFixed(0) + ' m';
 	    } else {
-		return minutes + 'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
+		return (l / 1000).toFixed(1) + ' km';
 	    }
 	} else {
-	    return hours + 'h' + (minutes.length < 2 ? '0' : '') + minutes +
-		'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
+	    var yards = l / 0.9144;
+	    if (yards < 440) {
+		return yards.toFixed(0) + ' yd';
+	    } else {
+		return (yards / 1760).toFixed(yards < 1760 ? 2 : 1) + ' m';
+	    }
 	}
-    }
-}
+    },
 
-function formatSpeed (s, def) {
-    if (isNaN(s)) {
-	return def;
-    } else if (metricUnits) {
-	return (s * 3600).toFixed(1) + ' km/h';
-    } else {
-	return (s * 3600 / 0.9144 / 1.76).toFixed(1) + ' m/h';
-    }
-}
+    formatDuration: function (d, def) {
+	if (d == 0) {
+	    return def;
+	} else {
+	    var seconds = (Math.floor(d / 1000) % 60).toFixed(0);
+	    var minutes = (Math.floor(d / 60000) % 60).toFixed(0);
+	    var hours = Math.floor(d / 3600000).toFixed(0);
 
-function formatElevation (h, def) {
-    if (h == 0) {
-	return def;
-    } else if (metricUnits) {
-	return h.toFixed(0) + ' m';
-    } else {
-	return (h / 0.9144 * 3).toFixed(0) + ' ft';
-    }
-}
-
-function createMapLayer (cacheDB, info) {
-    var cacheLayer = new FunctionalTileLayer(info.baseUrl, function (coords) {
-	var url = this.getTileUrl(coords);
-
-	var deferred = {
-	    _fn: null,
-
-	    then: function (fn) {
-		this._fn = fn;
-	    },
-
-	    resolve: function (arg) {
-		if (arg !== undefined) {
-		    var imgURL = window.URL.createObjectURL(arg);
-		    this._fn(imgURL, function (err, tile) {
-			window.URL.revokeObjectURL(imgURL);
-		    });
+	    if (hours == '0') {
+		if (minutes == '0') {
+		    return seconds + 's';
 		} else {
-		    this._fn(null, null);
+		    return minutes + 'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
 		}
+	    } else {
+		return hours + 'h' + (minutes.length < 2 ? '0' : '') + minutes +
+		    'm' + (seconds.length < 2 ? '0' : '') + seconds + 's';
 	    }
-	};
+	}
+    },
 
-	if (offline) {
-	    cacheDB.get(url, function (arg) {
-		deferred.resolve(arg);
-	    });
+    formatSpeed: function (s, def) {
+	if (isNaN(s)) {
+	    return def;
+	} else if (this._metricUnits) {
+	    return (s * 3600).toFixed(1) + ' km/h';
 	} else {
-	    cacheDB.getETag(url, function (arg) {
-		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
-		xhr.open('GET', url, true);
-		if (arg) {
-		    xhr.setRequestHeader('If-None-Match', arg);
-		}
-		xhr.responseType = 'blob';
-		xhr.addEventListener('load', function () {
-		    if (xhr.status === 200) {
-			var blob = xhr.response;
-			cacheDB.put(url, blob, xhr.getResponseHeader('ETag'));
-			deferred.resolve(blob);
-		    } else {
-			cacheDB.get(url, function (arg) {
-			    deferred.resolve(arg);
-			});
-		    }
-		}, false);
-		xhr.send();
-	    });
+	    return (s * 3600 / 0.9144 / 1.76).toFixed(1) + ' m/h';
+	}
+    },
+
+    formatElevation: function (h, def) {
+	if (h == 0) {
+	    return def;
+	} else if (this._metricUnits) {
+	    return h.toFixed(0) + ' m';
+	} else {
+	    return (h / 0.9144 * 3).toFixed(0) + ' ft';
+	}
+    },
+
+    createMapLayer: function (db, info) {
+	return new CachedTileLayer(info.baseUrl, db,
+				   { attribution: info.attribution,
+				     maxZoom: 18,
+				     subdomains: info.subdomains });
+    },
+
+    ClearTrack: function () {
+	if (this._trackControl !== null) {
+	    document.getElementById('track-length-display').textContent = '';
+	    this._map.removeLayer(this._trackControl);
+	    this._trackControl = null;
+	}
+    },
+
+    NewTrackFile: function (f) {
+	this.ClearTrack();
+
+	var self = this;
+	if (f) {
+	    reader = new FileReader();
+	    reader.onload = function(e) {
+		this._trackControl = new L.GPX(e.target.result,
+					       { async: true,
+						 polyline_options: { color: '#203090',
+								     opacity: 0.7 } }).on(
+									 'loaded', function(e) {
+									     self._map.fitBounds(e.target.getBounds());
+									 }).addTo(self._map);
+	    };
+	    
+	    reader.readAsText(f);
+	}
+    },
+
+    PositionUpdated: function (e) {
+	var isStationary = (e.coords.speed === 0) ||
+	    ((e.coords.heading !== null) && isNaN(e.coords.heading));
+	var isNewSeg = this._pathTracker.onPosition(isStationary, e.timestamp, e.coords);
+
+	if (! isStationary) {
+	    var pos = this._pathTracker.getPosition();
+
+	    this._trackPolyline.addLatLng(pos);
+	    this._map.panTo(pos);
+
+	    var len = this._pathTracker.getLength();
+	    document.getElementById('path-length-display').textContent =
+		this.formatDistance(len, '');
+
+	    this._directionIcon.setDirection(e.coords.heading);
+	} else if (isNewSeg) {
+	    this._map.panTo(this._pathTracker.getPosition());
 	}
 
-	return deferred;
-    }, { attribution: info.attribution, maxZoom: 18,
-	 subdomains: info.subdomains });
-    return cacheLayer;
-}
+	this._positionMarker.setIcon(this._directionIcon);
+	this._positionMarker.setLatLng(this._pathTracker.getPosition());
+	this._positionMarker.addTo(this._map);
+    },
 
-function InitializeDatabase(cb)
-{
-    var request = window.indexedDB.open('HikingMaps', 1);
-    request.onerror = function(event)
-    {
-	cb(null);
-    };
-    request.onsuccess = function(event)
-    {
-	mainDB = request.result;
-	cb(mainDB);
-    };
-    request.onupgradeneeded = function(event)
-    {
-	mainDB = request.result;
-	var ver = mainDB.version || 0; // version is empty string for a new DB
-	if (!mainDB.objectStoreNames.contains('tilecache'))
-	{
-	    var tilecacheStore = mainDB.createObjectStore('tilecache');
+    ManualPositionUpdate: function () {
+	document.getElementById('locate').dataset.state = 'refreshing';
+	this._map.locate({setView: true,
+			  maxZoom: 16,
+			  timeout: 60000,
+			  maximumAge: 0,
+			  enableHighAccuracy: true});
+    },
+
+    PositionUpdatePlayPause: function () {
+	if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
+	    document.getElementById('locate').classList.remove('invisible');
+	    document.getElementById('locateplaypause').classList.remove('pause-btn');
+	    document.getElementById('locateplaypause').classList.add('play-btn');
+	    document.getElementById('share').classList.remove('invisible');
+
+	    navigator.geolocation.clearWatch(this._trackingHandler);
+	    this._trackingHandler = null;
+	} else {
+	    document.getElementById('locate').classList.add('invisible');
+	    document.getElementById('locateplaypause').classList.add('pause-btn');
+	    document.getElementById('locateplaypause').classList.remove('play-btn');
+
+	    var shareElem = document.getElementById('share')
+	    shareElem.classList.add('invisible');
+	    if (shareElem.hasAttribute('href')) {
+		URL.revokeObjectURL(shareElem.getAttribute('href'));
+		shareElem.removeAttribute('href');
+	    }
+
+	    this._map.removeLayer(this._positionCircle);
+	    this._pathTracker.start();
+
+	    var self = this;
+	    this._trackingHandler = navigator.geolocation.watchPosition(
+		function(position) { self.PositionUpdated(position); },
+		function(err) { },
+		{
+		    enableHighAccuracy: true,
+		    timeout: 60000,
+		    maximumAge: 0
+		});
 	}
-	if (!mainDB.objectStoreNames.contains('tilemeta'))
-	{
-	    var tilemetaStore = mainDB.createObjectStore('tilemeta');
-	}
-	mainDB.onversionchange = function(event)
-	{
-	    mainDB.close();
-	    mainDB = undefined;
-	    InitializeDatabase();
-	};
-    };
-}
+    },
 
-function ClearTrack()
-{
-    if (trackControl !== null) {
-	document.getElementById('track-length-display').textContent = '';
-	map.removeLayer(trackControl);
-	trackControl = null;
-    }
-}
-
-function NewTrackFile(f)
-{
-    ClearTrack();
-
-    if (f) {
-	reader = new FileReader();
-	reader.onload = function(e) {
-	    trackControl = new L.GPX(e.target.result,
-				     { async: true,
-				       polyline_options: { color: '#203090',
-							   opacity: 0.7 } }).on(
-							       'loaded', function(e) {
-								   map.fitBounds(e.target.getBounds());
-							       }).addTo(map);
-	};
-
-	reader.readAsText(f);
-    }
-}
-
-function PositionUpdated(e)
-{
-    var isStationary = (e.coords.speed === 0) ||
-	((e.coords.heading !== null) && isNaN(e.coords.heading));
-    var isNewSeg = pathTracker.onPosition(isStationary, e.timestamp, e.coords);
-
-    if (! isStationary) {
-	trackPolyline.addLatLng(pathTracker.getPosition());
-	map.panTo(pathTracker.getPosition());
-
-	var len = pathTracker.getLength();
-	document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength(), '');
-
-	directionIcon.setDirection(e.coords.heading);
-    } else if (isNewSeg) {
-	map.panTo(pathTracker.getPosition());
-    }
-
-    positionMarker.setIcon(directionIcon);
-    positionMarker.setLatLng(pathTracker.getPosition());
-    positionMarker.addTo(map);
-}
-
-function ManualPositionUpdate()
-{
-    document.getElementById('locate').dataset.state = 'refreshing';
-    map.locate({setView: true, maxZoom: 16,
-		timeout: 60000, maximumAge: 0, enableHighAccuracy: true});
-}
-
-function PositionUpdatePlayPause()
-{
-    if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
-	document.getElementById('locate').classList.remove('invisible');
-	document.getElementById('locateplaypause').classList.remove('pause-btn');
-	document.getElementById('locateplaypause').classList.add('play-btn');
-	document.getElementById('share').classList.remove('invisible');
-
-	navigator.geolocation.clearWatch(trackingHandler);
-	trackingHandler = null;
-    } else {
-	document.getElementById('locate').classList.add('invisible');
-	document.getElementById('locateplaypause').classList.add('pause-btn');
-	document.getElementById('locateplaypause').classList.remove('play-btn');
+    WayDelete: function () {
+	this._map.removeLayer(this._positionMarker);
+	this._map.removeLayer(this._positionCircle);
 
 	var shareElem = document.getElementById('share')
 	shareElem.classList.add('invisible');
@@ -494,278 +662,117 @@ function PositionUpdatePlayPause()
 	    shareElem.removeAttribute('href');
 	}
 
-	map.removeLayer(positionCircle);
-	pathTracker.start();
-	trackingHandler = navigator.geolocation.watchPosition(
-            function(position) { PositionUpdated(position); },
-            function(err) { },
-            {
-		enableHighAccuracy: true,
-		timeout: 60000,
-		maximumAge: 0
-            });
+	this._pathTracker = new PathTracker();
+	document.getElementById('path-length-display').textContent = '';
+	this._map.removeLayer(this._trackPolyline);
+	this._trackPolyline = L.polyline([], { color: '#209030',
+					       opacity: 0.7 }).addTo(this._map);
+    },
+
+    OpenSettings: function () {
+	document.getElementById('settings-offline').checked = this._offline;
+	document.getElementById('settings-units').checked = this._metricUnits;
+
+	delete document.getElementById('settings-view').dataset.viewport;
+    },
+
+    EndSettings: function () {
+	document.getElementById('settings-view').dataset.viewport = 'bottom';
+
+	this._offline = document.getElementById('settings-offline').checked;
+	window.localStorage.setItem('offline', this._offline.toString());
+	this._mapLayer.setOffline(this._offline);
+
+	this._metricUnits = document.getElementById('settings-units').checked;
+	window.localStorage.setItem('metric', this._metricUnits.toString());
+
+	if ((this._trackControl !== null) &&
+	    (this._trackControl.get_distance() > 0)) {
+	    document.getElementById('track-length-display').textContent =
+		'(' + formatDistance(this._trackControl.get_distance(), '') + ')';
+	}
+	document.getElementById('path-length-display').textContent =
+	    this.formatDistance(this._pathTracker.getLength(), '');
+    },
+
+    UpdateStatistics: function () {
+	document.getElementById('stats-distance').textContent =
+	    this.formatDistance(this._pathTracker.getLength(), '-');
+	document.getElementById('stats-total-time').textContent =
+	    this.formatDuration(this._pathTracker.getTotalDuration(), '-');
+	document.getElementById('stats-moving-time').textContent =
+	    this.formatDuration(this._pathTracker.getMoveDuration(), '-');
+	document.getElementById('stats-moving-speed').textContent =
+	    this.formatSpeed(this._pathTracker.getLength() / this._pathTracker.getMoveDuration(),
+			'-');
+	document.getElementById('stats-min-elevation').textContent =
+	    (this._pathTracker.getMinElevation() === Infinity) ? '-' :
+	    this.formatElevation(pathTracker.getMinElevation(), '-');
+	document.getElementById('stats-max-elevation').textContent =
+	    (this._pathTracker.getMaxElevation() === -Infinity) ? '-' :
+	    this.formatElevation(pathTracker.getMaxElevation(), '-');
+	document.getElementById('stats-elevation-gain').textContent =
+	    this.formatElevation(this._pathTracker.getElevationGain(), '-');
+	document.getElementById('stats-elevation-loss').textContent =
+	    this.formatElevation(this._pathTracker.getElevationLoss(), '-');
+    },
+
+    OpenCloseStats: function () {
+	var mainView = document.getElementById('main-view');
+	if (mainView.dataset.viewport !== undefined) {
+	    delete mainView.dataset.viewport;
+	} else {
+	    this.UpdateStatistics();
+	    mainView.dataset.viewport = 'side';
+	}
+    },
+
+    createGpx: function (path) {
+	var dateString = new Date().toISOString();
+
+	var data = [];
+	data.push('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n' +
+		  '<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="HikingMaps">\n');
+	data.push('<metadata><link href="http://hikingmaps.cmeerw.org">' +
+		  '<text>HikingMaps</text></link>' +
+		  '<time>' + dateString + '</time></metadata>\n');
+	data.push('<trk><trkseg>\n');
+
+	for (var idx in path) {
+	    var ts = path[idx][0];
+	    var coord = path[idx][1];
+	    data.push('<trkpt lat="' + coord.lat + '" lon="' + coord.lng + '">' +
+		      ((coord.alt !== null) ? ('<ele>' + coord.alt + '</ele>') : '') +
+		      '<time>' + new Date(ts).toISOString() + '</time>' +
+		      '</trkpt>\n');
+	}
+
+	data.push('</trkseg></trk></gpx>\n');
+	return new Blob(data, { 'type' : 'application/gpx+xml' });
+    },
+
+    shareGpx: function (blob) {
+	new MozActivity({ name: 'share',
+			  data: {
+			      type: 'application/gpx+xml',
+			      number: 1,
+			      blobs: [blob],
+			      filepaths: [null]
+			  } });
+    },
+
+    SaveTrack: function () {
+	var elem = document.getElementById('share');
+	if (! elem.hasAttribute('href')) {
+	    var gpxUrl = URL.createObjectURL(this.createGpx(this._pathTracker.getPath()));
+	    elem.setAttribute('href', gpxUrl);
+	    elem.setAttribute('download', new Date().toISOString() + '.gpx');
+	}
+    },
+
+    ShareTrack: function () {
+	this.shareGpx(this.createGpx(this._pathTracker.getPath()));
     }
-}
-
-function WayDelete()
-{
-    map.removeLayer(positionMarker);
-    map.removeLayer(positionCircle);
-
-    var shareElem = document.getElementById('share')
-    shareElem.classList.add('invisible');
-    if (shareElem.hasAttribute('href')) {
-	URL.revokeObjectURL(shareElem.getAttribute('href'));
-	shareElem.removeAttribute('href');
-    }
-
-    pathTracker.reset();
-    document.getElementById('path-length-display').textContent = '';
-    map.removeLayer(trackPolyline);
-    trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(map);
-}
-
-function OpenSettings()
-{
-    document.getElementById('settings-offline').checked = offline;
-    document.getElementById('settings-units').checked = metricUnits;
-
-    delete document.getElementById('settings-view').dataset.viewport;
-}
-
-function EndSettings()
-{
-    document.getElementById('settings-view').dataset.viewport = 'bottom';
-
-    offline = document.getElementById('settings-offline').checked;
-    window.localStorage.setItem('offline', offline.toString());
-
-    metricUnits = document.getElementById('settings-units').checked;
-    window.localStorage.setItem('metric', metricUnits.toString());
-
-    if ((trackControl !== null) && (trackControl.get_distance() > 0)) {
-	document.getElementById('track-length-display').textContent = '(' + formatDistance(trackControl.get_distance(), '') + ')';
-    }
-    document.getElementById('path-length-display').textContent = formatDistance(pathTracker.getLength(), '');
-}
-
-function UpdateStatistics()
-{
-    document.getElementById('stats-distance').textContent =
-	formatDistance(pathTracker.getLength(), '-');
-    document.getElementById('stats-total-time').textContent =
-	formatDuration(pathTracker.getTotalDuration(), '-');
-    document.getElementById('stats-moving-time').textContent =
-	formatDuration(pathTracker.getMoveDuration(), '-');
-    document.getElementById('stats-moving-speed').textContent =
-	formatSpeed(pathTracker.getLength() / pathTracker.getMoveDuration(),
-		    '-');
-    document.getElementById('stats-min-elevation').textContent =
-	(pathTracker.getMinElevation() === Infinity) ? '-' :
-	formatElevation(pathTracker.getMinElevation(), '-');
-    document.getElementById('stats-max-elevation').textContent =
-	(pathTracker.getMaxElevation() === -Infinity) ? '-' :
-	formatElevation(pathTracker.getMaxElevation(), '-');
-    document.getElementById('stats-elevation-gain').textContent =
-	formatElevation(pathTracker.getElevationGain(), '-');
-    document.getElementById('stats-elevation-loss').textContent =
-	formatElevation(pathTracker.getElevationLoss(), '-');
-}
-
-function OpenCloseStats()
-{
-    var mainView = document.getElementById('main-view');
-    if (mainView.dataset.viewport !== undefined) {
-	delete mainView.dataset.viewport;
-    } else {
-	UpdateStatistics();
-	mainView.dataset.viewport = 'side';
-    }
-}
-
-function createGpx()
-{
-    var dateString = new Date().toISOString();
-
-    var data = [];
-    data.push('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n' +
-	      '<gpx xmlns="http://www.topografix.com/GPX/1/1" version="1.1" creator="HikingMaps">\n');
-    data.push('<metadata><link href="http://hikingmaps.cmeerw.org">' +
-	      '<text>HikingMaps</text></link>' +
-	      '<time>' + dateString + '</time></metadata>\n');
-    data.push('<trk><trkseg>\n');
-
-    var path = pathTracker.getPath();
-    for (var idx in path) {
-	var ts = path[idx][0];
-	var coord = path[idx][1];
-	data.push('<trkpt lat="' + coord.lat + '" lon="' + coord.lng + '">' +
-		  ((coord.alt !== null) ? ('<ele>' + coord.alt + '</ele>') : '') +
-		  '<time>' + new Date(ts).toISOString() + '</time>' +
-		 '</trkpt>\n');
-    }
-
-    data.push('</trkseg></trk></gpx>\n');
-    return new Blob(data, { 'type' : 'application/gpx+xml' });
-}
-
-function shareGpx(blob)
-{
-    new MozActivity({ name: 'share',
-		      data: {
-			  type: 'application/gpx+xml',
-			  number: 1,
-			  blobs: [blob],
-			  filepaths: [null]
-		      } });
-}
-
-function SaveTrack()
-{
-    var elem = document.getElementById('share');
-    if (! elem.hasAttribute('href')) {
-	var gpxUrl = URL.createObjectURL(createGpx());
-	elem.setAttribute('href', gpxUrl);
-	elem.setAttribute('download', new Date().toISOString() + '.gpx');
-    }
-}
-
-function ShareTrack()
-{
-    shareGpx(createGpx());
-}
-
-function InitializeApplication()
-{
-    map = L.map('map').setView([51.505, -0.09], 13);
-    positionMarker = L.marker([51.505, -0.09], { icon : positionIcon });
-    positionCircle = L.circle([51.505, -0.09], 0);
-
-    map.on('locationfound', function(e) {
-	document.getElementById('locate').dataset.state = '';
-	positionMarker.setIcon(positionIcon);
-	positionMarker.setLatLng(e.latlng);
-	positionCircle.setLatLng(e.latlng);
-	positionCircle.setRadius(e.accuracy / 2);
-
-	positionMarker.addTo(map);
-	positionCircle.addTo(map);
-    });
-
-    map.on('locationerror', function(e) {
-	document.getElementById('locate').dataset.state = '';
-    });
-
-    var cacheDB = {
-	_db: mainDB,
-
-	clear: function () {
-            var transaction = this._db.transaction(['tilecache', 'tilemeta'],
-						   'readwrite');
-            transaction.objectStore('tilemeta').clear();
-            transaction.objectStore('tilecache').clear();
-	},
-
-	put: function (key, value, etag) {
-	    var transaction = this._db.transaction(['tilecache', 'tilemeta'],
-						   'readwrite');
-	    var tileRequest = transaction.objectStore('tilecache').put(value, key);
-	    if (etag) {
-		var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
-	    }
-	},
-
-	get: function (key, fn) {
-	    var objStore = 'tilecache';
-            var transaction = this._db.transaction([objStore]);
-            var request = transaction.objectStore(objStore).get(key);
-            request.onsuccess = function (e) {
-                var blob = e.target.result;
-		fn(blob);
-            };
-            request.onerror = function (e) { };
-	},
-
-	getETag: function (key, fn) {
-            var transaction = this._db.transaction(['tilemeta']);
-            var request = transaction.objectStore('tilemeta').get(key);
-            request.onsuccess = function (e) {
-                var etag = e.target.result;
-		fn(etag);
-            };
-            request.onerror = function (e) {
-		fn(null);
-	    };
-	},
-    };
-
-    L.control.scale().addTo(map);
-
-    trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(map);
-    document.getElementById('locate').addEventListener('click', ManualPositionUpdate, false);
-    document.getElementById('locateplaypause').addEventListener('click', PositionUpdatePlayPause, false);
-    document.getElementById('waydelete').addEventListener('click', WayDelete, false);
-    document.getElementById('share').addEventListener('click', window.MozActivity
-						      ? ShareTrack
-						      : SaveTrack,
-						      false);
-    document.getElementById('menubutton').addEventListener('click', OpenSettings, false);
-    document.getElementById('settingsokbutton').addEventListener('click', EndSettings, false);
-    document.getElementById('statsbutton').addEventListener('click', OpenCloseStats, false);
-    document.getElementById('clear-cache').addEventListener('click', function () {
-	cacheDB.clear();
-    }, false);
-
-    var trackFilePick = document.getElementById('trackfilepick');
-    trackFilePick.addEventListener('click', function (e) {
-	var a = new MozActivity({ name: 'pick',
-				  data: { type: 'application/gpx+xml',
-					  multiple: false }});
-	a.onsuccess = function() {
-	    var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
-	    document.getElementById('trackfilename').setAttribute('value', name);
-	    NewTrackFile(a.result.blob);
-	};
-	a.onerror = function() { console.log('Failure when trying to pick an file'); };
-    }, false);
-
-    var trackFileClear = document.getElementById('trackfileclear');
-    trackFileClear.addEventListener('click', function (e) {
-	document.getElementById('trackfilename').setAttribute('value', '');
-	ClearTrack();
-    }, false);
-
-    var trackFileInput = document.getElementById('trackfile');
-    trackFileInput.addEventListener('change', function (e) {
-	NewTrackFile(e.target.files[0]);
-    }, false);
-
-    document.getElementById((window.MozActivity !== undefined) ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
-
-    var mapLayerSelect = document.getElementById('maplayerselect');
-    for (var mapIdx in mapInfo) {
-	mapLayerSelect.options[mapLayerSelect.options.length] = new Option(mapInfo[mapIdx].name, mapIdx);
-    }
-
-    if (activeLayer < mapLayerSelect.options.length) {
-	mapLayerSelect.options[activeLayer].selected = 'true';
-    } else {
-	activeLayer = 0;
-    }
-
-    mapLayer = createMapLayer (cacheDB, mapInfo[activeLayer]);
-    mapLayer.addTo(map);
-
-    document.getElementById('maplayerselect').addEventListener('change', function (e) {
-	activeLayer = mapLayerSelect.value;
-	window.localStorage.setItem('active-layer', activeLayer.toString());
-
-	map.removeLayer(mapLayer);
-	mapLayer = createMapLayer (cacheDB, mapInfo[activeLayer]);
-	mapLayer.addTo(map);
-    });
-}
-
-InitializeDatabase(function (db) {
-    InitializeApplication();
 });
+
+var app = new Application();
