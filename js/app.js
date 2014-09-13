@@ -455,8 +455,8 @@ var Application = L.Class.extend({
 						   opacity: 0.7 }).addTo(this._map);
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
-	document.getElementById('locateplaypause').addEventListener('click', L.bind(this.PositionUpdatePlayPause, this), false);
-	document.getElementById('waydelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
+	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
+	document.getElementById('trackdelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
 	document.getElementById('share').addEventListener('click', window.MozActivity
 							  ? L.bind(this.doShareTrack, this)
 							  : L.bind(this.doSaveTrack, this),
@@ -653,19 +653,19 @@ var Application = L.Class.extend({
 			  enableHighAccuracy: true});
     },
 
-    PositionUpdatePlayPause: function () {
-	if (document.getElementById('locateplaypause').classList.contains('pause-btn')) {
+    doRecordPlayPause: function () {
+	if (document.getElementById('recordplaypause').classList.contains('pause-btn')) {
 	    document.getElementById('locate').classList.remove('invisible');
-	    document.getElementById('locateplaypause').classList.remove('pause-btn');
-	    document.getElementById('locateplaypause').classList.add('play-btn');
+	    document.getElementById('recordplaypause').classList.remove('pause-btn');
+	    document.getElementById('recordplaypause').classList.add('play-btn');
 	    document.getElementById('share').classList.remove('invisible');
 
 	    navigator.geolocation.clearWatch(this._trackingHandler);
 	    this._trackingHandler = null;
 	} else {
 	    document.getElementById('locate').classList.add('invisible');
-	    document.getElementById('locateplaypause').classList.add('pause-btn');
-	    document.getElementById('locateplaypause').classList.remove('play-btn');
+	    document.getElementById('recordplaypause').classList.add('pause-btn');
+	    document.getElementById('recordplaypause').classList.remove('play-btn');
 
 	    var shareElem = document.getElementById('share')
 	    shareElem.classList.add('invisible');
@@ -733,7 +733,7 @@ var Application = L.Class.extend({
 	    this.formatDistance(this._pathTracker.getLength(), '');
     },
 
-    _UpdateStatistics: function () {
+    _updateStatistics: function () {
 	document.getElementById('stats-distance').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '-');
 	document.getElementById('stats-total-time').textContent =
@@ -760,7 +760,7 @@ var Application = L.Class.extend({
 	if (mainView.dataset.viewport !== undefined) {
 	    delete mainView.dataset.viewport;
 	} else {
-	    this._UpdateStatistics();
+	    this._updateStatistics();
 	    mainView.dataset.viewport = 'side';
 	}
     },
