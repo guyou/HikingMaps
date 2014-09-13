@@ -734,25 +734,26 @@ var Application = L.Class.extend({
     },
 
     _updateStatistics: function () {
+	var pt = this._pathTracker;
+
 	document.getElementById('stats-distance').textContent =
-	    this.formatDistance(this._pathTracker.getLength(), '-');
+	    this.formatDistance(pt.getLength(), '-');
 	document.getElementById('stats-total-time').textContent =
-	    this.formatDuration(this._pathTracker.getTotalDuration(), '-');
+	    this.formatDuration(pt.getTotalDuration(), '-');
 	document.getElementById('stats-moving-time').textContent =
-	    this.formatDuration(this._pathTracker.getMoveDuration(), '-');
+	    this.formatDuration(pt.getMoveDuration(), '-');
 	document.getElementById('stats-moving-speed').textContent =
-	    this.formatSpeed(this._pathTracker.getLength() / this._pathTracker.getMoveDuration(),
-			'-');
+	    this.formatSpeed(pt.getLength() / pt.getMoveDuration(), '-');
 	document.getElementById('stats-min-elevation').textContent =
-	    (this._pathTracker.getMinElevation() === Infinity) ? '-' :
-	    this.formatElevation(pathTracker.getMinElevation(), '-');
+	    (pt.getMinElevation() === Infinity) ? '-' :
+	    this.formatElevation(pt.getMinElevation(), '-');
 	document.getElementById('stats-max-elevation').textContent =
-	    (this._pathTracker.getMaxElevation() === -Infinity) ? '-' :
-	    this.formatElevation(pathTracker.getMaxElevation(), '-');
+	    (pt.getMaxElevation() === -Infinity) ? '-' :
+	    this.formatElevation(pt.getMaxElevation(), '-');
 	document.getElementById('stats-elevation-gain').textContent =
-	    this.formatElevation(this._pathTracker.getElevationGain(), '-');
+	    this.formatElevation(pt.getElevationGain(), '-');
 	document.getElementById('stats-elevation-loss').textContent =
-	    this.formatElevation(this._pathTracker.getElevationLoss(), '-');
+	    this.formatElevation(pt.getElevationLoss(), '-');
     },
 
     doOpenCloseStats: function () {
