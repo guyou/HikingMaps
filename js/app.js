@@ -785,7 +785,7 @@ var Application = L.Class.extend({
 		var point = seg[i];
 		data.push('<trkpt lat="' + point.lat +
 			  '" lon="' + point.lng + '">' +
-			  ((coord.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
+			  ((point.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
 			  '<time>' + new Date(point.ts).toISOString() + '</time>' +
 			  '</trkpt>\n');
 	    }
