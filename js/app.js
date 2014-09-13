@@ -139,10 +139,10 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
 var PathTracker = L.Class.extend ({
     initialize: function () {
-	this._path = [];
 	this._curTimestamp = null;
 	this._moveTimestamp = null;
 	this._curPos = null;
+	this._prevPos = null;
 	this._moveDuration = 0;
 	this._waitDuration = 0;
 	this._length = 0;
@@ -157,10 +157,6 @@ var PathTracker = L.Class.extend ({
 	this._curTimestamp = null;
 	this._moveTimestamp = null;
 	this._prevAlt = [-Infinity, Infinity];
-    },
-
-    getPath: function () {
-	return this._path;
     },
 
     getLength: function () {
@@ -202,12 +198,10 @@ var PathTracker = L.Class.extend ({
     onPosition: function (isStationary, ts, coords) {
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude,
 				    coords.altitude);
+	this._curPos.ts = ts;
+
 	if (! isStationary)
 	{
-	    var prevPos = (this._path.length > 0) ?
-		this._path[this._path.length - 1][1] : null;
-	    this._path.push([ts, this._curPos]);
-
 	    var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
 				       ? coords.altitudeAccuracy
 				       : 0
@@ -226,8 +220,8 @@ var PathTracker = L.Class.extend ({
 				     ? coords.altitude : -Infinity);
 
 	    if (this._curTimestamp !== null) {
-		if (prevPos !== null) {
-		    this._length += prevPos.distanceTo(this._curPos);
+		if (this._prevPos !== null) {
+		    this._length += this._prevPos.distanceTo(this._curPos);
 		}
 
 		if ((this._moveTimestamp !== null) &&
@@ -250,6 +244,7 @@ var PathTracker = L.Class.extend ({
 		}
 	    }
 
+	    this._prevPos = this._curPos;
 	    this._prevAlt = curAlt;
 	    this._moveTimestamp = ts;
 	} else {
@@ -353,8 +348,8 @@ var Application = L.Class.extend({
 	this._positionMarker = null;
 	this._positionCircle = null;
 
-	this._trackControl = null;
-	this._trackPolyline = null;
+	this._routeLayer = null;
+	this._trackLayer = null;
 	this._trackingHandler = null;
 	this._pathTracker = new PathTracker();
 
@@ -418,18 +413,19 @@ var Application = L.Class.extend({
 	var cacheDB = new TileCacheDb(this._db);
 	L.control.scale().addTo(this._map);
 
-	this._trackPolyline = L.polyline([], { color: '#209030', opacity: 0.7 }).addTo(this._map);
+	this._trackLayer = L.polyline([], { color: '#209030',
+					    opacity: 0.7 }).addTo(this._map);
 	document.getElementById('locate').addEventListener('click',
-							   L.bind(this.ManualPositionUpdate, this), false);
+							   L.bind(this.doLocate, this), false);
 	document.getElementById('locateplaypause').addEventListener('click', L.bind(this.PositionUpdatePlayPause, this), false);
-	document.getElementById('waydelete').addEventListener('click', L.bind(this.WayDelete, this), false);
+	document.getElementById('waydelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
 	document.getElementById('share').addEventListener('click', window.MozActivity
-							  ? L.bind(this.ShareTrack, this)
-							  : L.bind(this.SaveTrack, this),
+							  ? L.bind(this.doShareTrack, this)
+							  : L.bind(this.doSaveTrack, this),
 							  false);
-	document.getElementById('menubutton').addEventListener('click', L.bind(this.OpenSettings, this), false);
-	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.EndSettings, this), false);
-	document.getElementById('statsbutton').addEventListener('click', L.bind(this.OpenCloseStats, this), false);
+	document.getElementById('menubutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
+	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
+	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
 	document.getElementById('clear-cache').addEventListener('click', function () {
 	    cacheDB.clear();
 	}, false);
@@ -442,7 +438,7 @@ var Application = L.Class.extend({
 	    a.onsuccess = function() {
 		var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
 		document.getElementById('trackfilename').setAttribute('value', name);
-		self.NewTrackFile(a.result.blob);
+		self.loadRoute(a.result.blob);
 	    };
 	    a.onerror = function() { console.log('Failure when trying to pick an file'); };
 	}, false);
@@ -450,12 +446,12 @@ var Application = L.Class.extend({
 	var trackFileClear = document.getElementById('trackfileclear');
 	trackFileClear.addEventListener('click', function (e) {
 	    document.getElementById('trackfilename').setAttribute('value', '');
-	    self.ClearTrack();
+	    self._clearRoute();
 	}, false);
 
 	var trackFileInput = document.getElementById('trackfile');
 	trackFileInput.addEventListener('change', function (e) {
-	    self.NewTrackFile(e.target.files[0]);
+	    self.loadRoute(e.target.files[0]);
 	}, false);
 
 	document.getElementById((window.MozActivity !== undefined) ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
@@ -553,35 +549,35 @@ var Application = L.Class.extend({
 				     subdomains: info.subdomains });
     },
 
-    ClearTrack: function () {
-	if (this._trackControl !== null) {
-	    document.getElementById('track-length-display').textContent = '';
-	    this._map.removeLayer(this._trackControl);
-	    this._trackControl = null;
+    _clearRoute: function () {
+	if (this._routeLayer !== null) {
+	    document.getElementById('route-length').textContent = '';
+	    this._map.removeLayer(this._routeLayer);
+	    this._routeLayer = null;
 	}
     },
 
-    NewTrackFile: function (f) {
-	this.ClearTrack();
+    loadRoute: function (f) {
+	this._clearRoute();
 
 	var self = this;
 	if (f) {
 	    reader = new FileReader();
 	    reader.onload = function(e) {
-		this._trackControl = new L.GPX(e.target.result,
-					       { async: true,
-						 polyline_options: { color: '#203090',
-								     opacity: 0.7 } }).on(
-									 'loaded', function(e) {
-									     self._map.fitBounds(e.target.getBounds());
-									 }).addTo(self._map);
+		this._routeLayer = new L.GPX(e.target.result, {
+		    async: true,
+		    polyline_options: { color: '#203090',
+					opacity: 0.7 } }).on(
+					    'loaded', function(e) {
+						self._map.fitBounds(e.target.getBounds());
+					    }).addTo(self._map);
 	    };
 	    
 	    reader.readAsText(f);
 	}
     },
 
-    PositionUpdated: function (e) {
+    _positionUpdated: function (e) {
 	var isStationary = (e.coords.speed === 0) ||
 	    ((e.coords.heading !== null) && isNaN(e.coords.heading));
 	var isNewSeg = this._pathTracker.onPosition(isStationary, e.timestamp, e.coords);
@@ -589,11 +585,11 @@ var Application = L.Class.extend({
 	if (! isStationary) {
 	    var pos = this._pathTracker.getPosition();
 
-	    this._trackPolyline.addLatLng(pos);
+	    this._trackLayer.addLatLng(pos);
 	    this._map.panTo(pos);
 
 	    var len = this._pathTracker.getLength();
-	    document.getElementById('path-length-display').textContent =
+	    document.getElementById('track-length').textContent =
 		this.formatDistance(len, '');
 
 	    this._directionIcon.setDirection(e.coords.heading);
@@ -606,7 +602,7 @@ var Application = L.Class.extend({
 	this._positionMarker.addTo(this._map);
     },
 
-    ManualPositionUpdate: function () {
+    doLocate: function () {
 	document.getElementById('locate').dataset.state = 'refreshing';
 	this._map.locate({setView: true,
 			  maxZoom: 16,
@@ -641,7 +637,7 @@ var Application = L.Class.extend({
 
 	    var self = this;
 	    this._trackingHandler = navigator.geolocation.watchPosition(
-		function(position) { self.PositionUpdated(position); },
+		function(position) { self._positionUpdated(position); },
 		function(err) { },
 		{
 		    enableHighAccuracy: true,
@@ -651,7 +647,7 @@ var Application = L.Class.extend({
 	}
     },
 
-    WayDelete: function () {
+    doDeleteTrack: function () {
 	this._map.removeLayer(this._positionMarker);
 	this._map.removeLayer(this._positionCircle);
 
@@ -663,20 +659,20 @@ var Application = L.Class.extend({
 	}
 
 	this._pathTracker = new PathTracker();
-	document.getElementById('path-length-display').textContent = '';
-	this._map.removeLayer(this._trackPolyline);
-	this._trackPolyline = L.polyline([], { color: '#209030',
-					       opacity: 0.7 }).addTo(this._map);
+	document.getElementById('track-length').textContent = '';
+	this._map.removeLayer(this._trackLayer);
+	this._trackLayer = L.polyline([], { color: '#209030',
+					    opacity: 0.7 }).addTo(this._map);
     },
 
-    OpenSettings: function () {
+    doOpenSettings: function () {
 	document.getElementById('settings-offline').checked = this._offline;
 	document.getElementById('settings-units').checked = this._metricUnits;
 
 	delete document.getElementById('settings-view').dataset.viewport;
     },
 
-    EndSettings: function () {
+    doEndSettings: function () {
 	document.getElementById('settings-view').dataset.viewport = 'bottom';
 
 	this._offline = document.getElementById('settings-offline').checked;
@@ -686,16 +682,16 @@ var Application = L.Class.extend({
 	this._metricUnits = document.getElementById('settings-units').checked;
 	window.localStorage.setItem('metric', this._metricUnits.toString());
 
-	if ((this._trackControl !== null) &&
-	    (this._trackControl.get_distance() > 0)) {
-	    document.getElementById('track-length-display').textContent =
-		'(' + formatDistance(this._trackControl.get_distance(), '') + ')';
+	if ((this._routeLayer !== null) &&
+	    (this._routeLayer.get_distance() > 0)) {
+	    document.getElementById('route-length').textContent =
+		'(' + formatDistance(this._routeLayer.get_distance(), '') + ')';
 	}
-	document.getElementById('path-length-display').textContent =
+	document.getElementById('track-length').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '');
     },
 
-    UpdateStatistics: function () {
+    _UpdateStatistics: function () {
 	document.getElementById('stats-distance').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '-');
 	document.getElementById('stats-total-time').textContent =
@@ -717,17 +713,17 @@ var Application = L.Class.extend({
 	    this.formatElevation(this._pathTracker.getElevationLoss(), '-');
     },
 
-    OpenCloseStats: function () {
+    doOpenCloseStats: function () {
 	var mainView = document.getElementById('main-view');
 	if (mainView.dataset.viewport !== undefined) {
 	    delete mainView.dataset.viewport;
 	} else {
-	    this.UpdateStatistics();
+	    this._UpdateStatistics();
 	    mainView.dataset.viewport = 'side';
 	}
     },
 
-    createGpx: function (path) {
+    _createGpx: function (path) {
 	var dateString = new Date().toISOString();
 
 	var data = [];
@@ -739,11 +735,10 @@ var Application = L.Class.extend({
 	data.push('<trk><trkseg>\n');
 
 	for (var idx in path) {
-	    var ts = path[idx][0];
-	    var coord = path[idx][1];
-	    data.push('<trkpt lat="' + coord.lat + '" lon="' + coord.lng + '">' +
-		      ((coord.alt !== null) ? ('<ele>' + coord.alt + '</ele>') : '') +
-		      '<time>' + new Date(ts).toISOString() + '</time>' +
+	    var point = path[idx];
+	    data.push('<trkpt lat="' + point.lat + '" lon="' + point.lng + '">' +
+		      ((coord.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
+		      '<time>' + new Date(point.ts).toISOString() + '</time>' +
 		      '</trkpt>\n');
 	}
 
@@ -751,7 +746,7 @@ var Application = L.Class.extend({
 	return new Blob(data, { 'type' : 'application/gpx+xml' });
     },
 
-    shareGpx: function (blob) {
+    _shareGpx: function (blob) {
 	new MozActivity({ name: 'share',
 			  data: {
 			      type: 'application/gpx+xml',
@@ -761,17 +756,17 @@ var Application = L.Class.extend({
 			  } });
     },
 
-    SaveTrack: function () {
+    doSaveTrack: function () {
 	var elem = document.getElementById('share');
 	if (! elem.hasAttribute('href')) {
-	    var gpxUrl = URL.createObjectURL(this.createGpx(this._pathTracker.getPath()));
+	    var gpxUrl = URL.createObjectURL(this._createGpx(this._trackLayer.getLatLngs()));
 	    elem.setAttribute('href', gpxUrl);
 	    elem.setAttribute('download', new Date().toISOString() + '.gpx');
 	}
     },
 
-    ShareTrack: function () {
-	this.shareGpx(this.createGpx(this._pathTracker.getPath()));
+    doShareTrack: function () {
+	this._shareGpx(this._createGpx(this._trackLayer.getLatLngs()));
     }
 });
 

@@ -67,7 +67,7 @@ body[role="application"] section[role="region"] > header button {
     font-weight: normal;
 }
 
-#path-length-display {
+#track-length {
     position: absolute;
     right: 1rem;
     top: 1rem;
