@@ -24,6 +24,44 @@ var ArrowIcon = L.Icon.extend({
     }
 });
 
+MultiPolyline = L.Polyline.extend({
+    initialize: function (latlngs, options) {
+	L.Polyline.prototype.initialize.call(this, [latlngs], options);
+    },
+
+    _flat: function (latlngs) {
+	return false;
+    },
+
+    _project: function () {
+	this._rings = [];
+	this._projectLatlngs(this._latlngs, this._rings);
+
+	// project bounds as well to use later for Canvas hit detection/etc.
+	var w = this._clickTolerance(),
+	p = new L.Point(w, -w);
+
+	if (this._rings.length) {
+	    this._pxBounds = new L.Bounds(
+		this._map.latLngToLayerPoint(this._bounds.getSouthWest())._subtract(p),
+		this._map.latLngToLayerPoint(this._bounds.getNorthEast())._add(p));
+	}
+    },
+
+    addSegment: function () {
+	if (this._latlngs[this._latlngs.length - 1].length) {
+	    this._latlngs.push([]);
+	}
+    },
+
+    addLatLng: function (latlng) {
+	latlng = L.latLng(latlng);
+	this._latlngs[this._latlngs.length - 1].push(latlng);
+	this._bounds.extend(latlng);
+	return this.redraw();
+    },
+});
+
 var FunctionalTileLayer = L.TileLayer.extend({
     initialize: function (url, tileFn, options) {
 	this._tileFn = tileFn;
@@ -413,8 +451,8 @@ var Application = L.Class.extend({
 	var cacheDB = new TileCacheDb(this._db);
 	L.control.scale().addTo(this._map);
 
-	this._trackLayer = L.polyline([], { color: '#209030',
-					    opacity: 0.7 }).addTo(this._map);
+	this._trackLayer = new MultiPolyline([], { color: '#209030',
+						   opacity: 0.7 }).addTo(this._map);
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('locateplaypause').addEventListener('click', L.bind(this.PositionUpdatePlayPause, this), false);
@@ -582,6 +620,10 @@ var Application = L.Class.extend({
 	    ((e.coords.heading !== null) && isNaN(e.coords.heading));
 	var isNewSeg = this._pathTracker.onPosition(isStationary, e.timestamp, e.coords);
 
+	if (isNewSeg) {
+	    this._trackLayer.addSegment();
+	}
+
 	if (! isStationary) {
 	    var pos = this._pathTracker.getPosition();
 
@@ -723,7 +765,7 @@ var Application = L.Class.extend({
 	}
     },
 
-    _createGpx: function (path) {
+    _createGpx: function (trackSegs) {
 	var dateString = new Date().toISOString();
 
 	var data = [];
@@ -732,17 +774,25 @@ var Application = L.Class.extend({
 	data.push('<metadata><link href="http://hikingmaps.cmeerw.org">' +
 		  '<text>HikingMaps</text></link>' +
 		  '<time>' + dateString + '</time></metadata>\n');
-	data.push('<trk><trkseg>\n');
+	data.push('<trk>\n');
 
-	for (var idx in path) {
-	    var point = path[idx];
-	    data.push('<trkpt lat="' + point.lat + '" lon="' + point.lng + '">' +
-		      ((coord.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
-		      '<time>' + new Date(point.ts).toISOString() + '</time>' +
-		      '</trkpt>\n');
+	var len = trackSegs.length - (trackSegs[trackSegs.length - 1].length ? 0 : 1);
+	for (var idx = 0; idx < len; idx++) {
+	    var seg = trackSegs[idx];
+
+	    data.push('<trkseg>\n');
+	    for (var i in seg) {
+		var point = seg[i];
+		data.push('<trkpt lat="' + point.lat +
+			  '" lon="' + point.lng + '">' +
+			  ((coord.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
+			  '<time>' + new Date(point.ts).toISOString() + '</time>' +
+			  '</trkpt>\n');
+	    }
+	    data.push('</trkseg>\n');
 	}
 
-	data.push('</trkseg></trk></gpx>\n');
+	data.push('</trk></gpx>\n');
 	return new Blob(data, { 'type' : 'application/gpx+xml' });
     },
 
