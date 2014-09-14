@@ -727,7 +727,7 @@ var Application = L.Class.extend({
 	if ((this._routeLayer !== null) &&
 	    (this._routeLayer.get_distance() > 0)) {
 	    document.getElementById('route-length').textContent =
-		'(' + formatDistance(this._routeLayer.get_distance(), '') + ')';
+		'(' + this.formatDistance(this._routeLayer.get_distance(), '') + ')';
 	}
 	document.getElementById('track-length').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '');
