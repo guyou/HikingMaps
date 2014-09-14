@@ -188,20 +188,20 @@ section[data-type="sidebar"] > div > dl > dd {
 }
 
 
-form[role="pick"] {
+form[role="name"] {
   position: relative;
   height: 3.7rem;
   background: #f4f4f4;
 }
 
-form[role="pick"] p {
+form[role="name"] p {
   padding: 0 1.5rem 0 3rem;
   overflow: hidden;
   position: relative;
 }
 
-form[role="pick"] p input,
-form[role="pick"] p textarea {
+form[role="name"] p input,
+form[role="name"] p textarea {
   height: 3.7rem;
   border: none;
   background: none;
@@ -210,16 +210,23 @@ form[role="pick"] p textarea {
   box-shadow: none;
 }
 
-form[role="pick"] p textarea {
+form[role="name"] p textarea {
   padding: 1rem 0 0 0;
 }
 
-form[role="pick"] p input:focus::-moz-placeholder {
+form[role="name"] p input:focus::-moz-placeholder {
   background: none;
 }
 
-form[role="pick"] button[type="button"] {
+form[role="name"] button[type="button"][role="set"] {
   float: right;
+}
+
+form[role="name"] button[type="button"][role="pick"] {
+  float: left;
+}
+
+form[role="name"] button[type="button"] {
   min-width: 6rem;
   height: 3.7rem;
   padding: 0 1.5rem;
@@ -237,44 +244,51 @@ form[role="pick"] button[type="button"] {
   overflow: visible;
 }
 
-form[role="pick"] button[type="button"]:after {
+form[role="name"] button[type="button"][role="set"]:after {
+  left: -0.1rem;
+}
+
+form[role="name"] button[type="button"][role="pick"]:after {
+  right: 0.1rem;
+}
+
+form[role="name"] button[type="button"]:after {
   content: "";
   position: absolute;
-  left: -0.1rem;
   top: 0.7rem;
   bottom: 0.7rem;
   width: 0.1rem;
   background: #c7c7c7;
 }
 
-form[role="pick"] button[type="button"].icon {
+form[role="name"] button[type="button"].icon {
   font-size: 0;
   background-repeat: no-repeat;
   background-position: center;
   background-size: 3rem;
 }
 
-form[role="pick"] p input + button[type="reset"] {
+form[role="name"] p input + button[type="reset"] {
   height: 3.7rem;
   right: 0.5rem;
 }
 
-form[role="pick"].skin-dark button[type="button"]:after {
+form[role="name"].skin-dark button[type="button"]:after {
   background-color: #575757;
 }
 
-form[role="pick"] button[type="button"] + p button {
+form[role="name"] button[type="button"] + p button {
   height: 3.7rem;
 }
 
-form[role="pick"] button.icon:active,
-form[role="pick"] button[type="button"]:active {
+form[role="name"] button.icon:active,
+form[role="name"] button[type="button"]:active {
   background-color: #b2f2ff;
   color: #fff;
 }
 
-form[role="pick"] p input + button[type="reset"],
-form[role="pick"] p textarea + button[type="reset"] {
+form[role="name"] p input + button[type="reset"],
+form[role="name"] p textarea + button[type="reset"] {
   opacity: 1;
   pointer-events: all;
 }
