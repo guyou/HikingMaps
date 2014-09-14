@@ -602,7 +602,7 @@ var Application = L.Class.extend({
 	if (f) {
 	    reader = new FileReader();
 	    reader.onload = function(e) {
-		this._routeLayer = new L.GPX(e.target.result, {
+		self._routeLayer = new L.GPX(e.target.result, {
 		    async: true,
 		    polyline_options: { color: '#203090',
 					opacity: 0.7 } }).on(
