@@ -159,34 +159,75 @@ body[role="application"] section[role="region"] > header button {
     margin: 0px 0px 0px 100px;
 }
 
-section[data-type="sidebar"] > div > dl {
+section[data-type="sidebar"] > table {
     width: 100%;
-    margin: 0;
-    padding: 1rem 1rem 1rem 2rem;
-    overflow: hidden;
-
-    text-decoration: none;
     color: #fff;
+    font-family: sans-serif;
     font-size: 1.4rem;
+    text-align: center;
+    text-decoration: none;
 }
 
-section[data-type="sidebar"] > div > dl > dt {
-    float: left;
-    width: calc(50% - 0.5rem);
-    list-style: none;
+section[data-type="sidebar"] > table > tbody > tr:first-child > th {
+    border-top: solid 0.1rem #272727;
+    padding-top: 1rem;
+}
+
+section[data-type="sidebar"] > table > tbody:first-child > tr > th {
+    padding-top: 2rem;
+    border: none;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > th:first-child {
+    width: 50%;
     text-align: right;
 }
 
-section[data-type="sidebar"] > div > dl > dd {
-    float: right;
-    width: calc(50% - 0.5rem);
+section[data-type="sidebar"] > table > tbody > tr > th:last-child {
+    width: 50%;
     text-align: left;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > th:only-child {
+    text-align: center;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > th {
+    font-weight: normal;
+    padding: 0rem 1rem;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > td:first-child {
+    width: 50%;
+    text-align: right;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > td:last-child {
+    width: 50%;
+    text-align: left;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > td:only-child {
+    text-align: center;
+}
+
+section[data-type="sidebar"] > table > tbody > tr > td {
+    font-style: italic;
+    font-weight: bold;
+    padding: 0rem 1rem 1rem 1rem;
 }
 
 [data-type="list"] li.invisible {
     display: none;
 }
 
+[data-type="list"] li {
+    height: 100%;
+}
+
+[data-type="list"] li:first-child button {
+    margin-top: 1rem;
+}
 
 form[role="name"] {
   position: relative;
