@@ -389,7 +389,7 @@ var Application = L.Class.extend({
 	this._routeLayer = null;
 	this._trackLayer = null;
 	this._trackingHandler = null;
-	this._pathTracker = new PathTracker();
+	this._pathTracker = null;
 
 	this._initDb();
     },
@@ -430,6 +430,8 @@ var Application = L.Class.extend({
 	var self = this;
 
 	this._map = L.map('map').setView([51.505, -0.09], 13);
+	L.control.scale().addTo(this._map);
+
 	this._positionMarker = L.marker([51.505, -0.09], { icon : this._positionIcon });
 	this._positionCircle = L.circle([51.505, -0.09], 0);
 
@@ -449,10 +451,9 @@ var Application = L.Class.extend({
 	});
 
 	var cacheDB = new TileCacheDb(this._db);
-	L.control.scale().addTo(this._map);
 
-	this._trackLayer = new MultiPolyline([], { color: '#209030',
-						   opacity: 0.7 }).addTo(this._map);
+	this._createTrack();
+
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
@@ -496,7 +497,8 @@ var Application = L.Class.extend({
 
 	var mapLayerSelect = document.getElementById('maplayerselect');
 	for (var mapIdx in mapInfo) {
-	    mapLayerSelect.options[mapLayerSelect.options.length] = new Option(mapInfo[mapIdx].name, mapIdx);
+	    mapLayerSelect.options[mapLayerSelect.options.length] =
+		new Option(mapInfo[mapIdx].name, mapIdx);
 	}
 
 	if (this._activeLayer < mapLayerSelect.options.length) {
@@ -505,7 +507,8 @@ var Application = L.Class.extend({
 	    this._activeLayer = 0;
 	}
 
-	this._mapLayer = this.createMapLayer (cacheDB, mapInfo[this._activeLayer]);
+	this._mapLayer = this._createMapLayer(cacheDB,
+					      mapInfo[this._activeLayer]);
 	this._mapLayer.setOffline(this._offline);
 	this._mapLayer.addTo(this._map);
 
@@ -514,7 +517,8 @@ var Application = L.Class.extend({
 	    window.localStorage.setItem('active-layer', self._activeLayer.toString());
 
 	    self._map.removeLayer(self._mapLayer);
-	    self._mapLayer = self.createMapLayer (cacheDB, mapInfo[self._activeLayer]);
+	    self._mapLayer = self._createMapLayer(cacheDB,
+						  mapInfo[self._activeLayer]);
 	    self._mapLayer.setOffline(self._offline);
 	    self._mapLayer.addTo(self._map);
 	});
@@ -580,7 +584,7 @@ var Application = L.Class.extend({
 	}
     },
 
-    createMapLayer: function (db, info) {
+    _createMapLayer: function (db, info) {
 	return new CachedTileLayer(info.baseUrl, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
@@ -689,6 +693,18 @@ var Application = L.Class.extend({
 	}
     },
 
+    _createTrack: function () {
+	if (this._trackLayer !== null) {
+	    this._map.removeLayer(this._trackLayer);
+	}
+	this._trackLayer =
+	    new MultiPolyline([], { color: '#209030',
+				    opacity: 0.7 }).addTo(this._map);
+	this._pathTracker = new PathTracker();
+
+	document.getElementById('track-length').textContent = '';
+    },
+
     doDeleteTrack: function () {
 	this._map.removeLayer(this._positionMarker);
 	this._map.removeLayer(this._positionCircle);
@@ -700,11 +716,7 @@ var Application = L.Class.extend({
 	    shareElem.removeAttribute('href');
 	}
 
-	this._pathTracker = new PathTracker();
-	document.getElementById('track-length').textContent = '';
-	this._map.removeLayer(this._trackLayer);
-	this._trackLayer = L.polyline([], { color: '#209030',
-					    opacity: 0.7 }).addTo(this._map);
+	this._createTrack();
     },
 
     doOpenSettings: function () {
