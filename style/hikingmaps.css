@@ -74,12 +74,12 @@ body[role="application"] section[role="region"] > header button {
 
 #track-length {
     position: absolute;
-    right: 1rem;
-    top: 1rem;
+    right: .5rem;
+    bottom: 4.2rem;
     color: #209030;
     font-family: sans-serif;
     font-size: 1.8rem;
-    background-color: rgba(0, 0, 0, 0);
+    text-shadow: 1px 1px 1px #000000;
     z-index: 1010;
 }
 
@@ -163,6 +163,10 @@ body[role="application"] section[role="region"] > header button {
 .leaflet-container .leaflet-control-attribution {
     text-align: right;
     margin: 0px 0px 0px 100px;
+}
+
+.leaflet-control-scale {
+    bottom: 4rem;
 }
 
 section[data-type="sidebar"] > table {

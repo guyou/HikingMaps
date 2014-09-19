@@ -429,7 +429,7 @@ var Application = L.Class.extend({
     _initApp: function () {
 	var self = this;
 
-	this._map = L.map('map').setView([51.505, -0.09], 13);
+	this._map = L.map('map', { zoomControl: false}).setView([51.505, -0.09], 13);
 	L.control.scale().addTo(this._map);
 
 	this._positionMarker = L.marker([51.505, -0.09], { icon : this._positionIcon });
