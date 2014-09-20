@@ -1,5 +1,5 @@
 {
-    "version": "0.5",
+    "version": "0.6-dev.8",
     "name": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
     "launch_path": "/index.html",
