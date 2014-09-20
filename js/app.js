@@ -376,6 +376,9 @@ var Application = L.Class.extend({
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
+	this._mapLat = window.localStorage.getItem('map-lat');
+	this._mapLng = window.localStorage.getItem('map-lng');
+	this._mapZoom = window.localStorage.getItem('map-zoom');
 
 	this._db = null;
 	this._map = null;
@@ -426,14 +429,35 @@ var Application = L.Class.extend({
 	};
     },
 
+    _initMapView: function () {
+	this._map.setView([0, (new Date()).getTimezoneOffset() / 60 / 12 * 180], 2);
+    },
+
     _initApp: function () {
 	var self = this;
 
-	this._map = L.map('map', { zoomControl: false}).setView([51.505, -0.09], 13);
+	this._map = L.map('map', { zoomControl: false });
+	if (this._mapLat && this._mapLng && this._mapZoom) {
+	    this._map.setView([Number(this._mapLat), Number(this._mapLng)],
+			      Number(this._mapZoom));
+	} else {
+	    this._map.setView([0, 0], 2);
+	}
+	window.addEventListener('unload', function () {
+	    var center = self._map.getCenter();
+	    self._mapLat = center.lat;
+	    self._mapLng = center.lng;
+	    self._mapZoom = self._map.getZoom();
+
+	    window.localStorage.setItem('map-lat', self._mapLat);
+	    window.localStorage.setItem('map-lng', self._mapLng);
+	    window.localStorage.setItem('map-zoom', self._mapZoom);
+	});
+
 	L.control.scale().addTo(this._map);
 
-	this._positionMarker = L.marker([51.505, -0.09], { icon : this._positionIcon });
-	this._positionCircle = L.circle([51.505, -0.09], 0);
+	this._positionMarker = L.marker([0, 0], { icon : this._positionIcon });
+	this._positionCircle = L.circle([0, 0], 0);
 
 	this._map.on('locationfound', function(e) {
 	    document.getElementById('locate').dataset.state = '';
