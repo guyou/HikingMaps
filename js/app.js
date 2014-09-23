@@ -399,6 +399,9 @@ var Application = L.Class.extend({
 	this._mapLng = window.localStorage.getItem('map-lng');
 	this._mapZoom = window.localStorage.getItem('map-zoom');
 
+	this._useWebActivities = (window.MozActivity !== undefined) &&
+	    (navigator.getDeviceStorage !== undefined);
+
 	this._db = null;
 	this._map = null;
 	this._mapLayer = null;
@@ -446,10 +449,6 @@ var Application = L.Class.extend({
 		self._initDb();
 	    };
 	};
-    },
-
-    _initMapView: function () {
-	this._map.setView([0, (new Date()).getTimezoneOffset() / 60 / 12 * 180], 2);
     },
 
     _initApp: function () {
@@ -501,7 +500,7 @@ var Application = L.Class.extend({
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
 	document.getElementById('trackdelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
-	document.getElementById('share').addEventListener('click', window.MozActivity
+	document.getElementById('share').addEventListener('click', this._useWebActivities
 							  ? L.bind(this.doShareTrack, this)
 							  : L.bind(this.doSaveTrack, this),
 							  false);
@@ -536,7 +535,7 @@ var Application = L.Class.extend({
 	    self.loadRoute(e.target.files[0]);
 	}, false);
 
-	document.getElementById((window.MozActivity !== undefined) ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
+	document.getElementById(this._useWebActivities ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
 
 	var mapLayerSelect = document.getElementById('maplayerselect');
 	for (var mapIdx in mapInfo) {
