@@ -700,18 +700,18 @@ var Application = L.Class.extend({
     },
 
     doRecordPlayPause: function () {
-	if (document.getElementById('recordplaypause').classList.contains('pause-btn')) {
+	if (document.getElementById('recordplaypause').classList.contains('icon-media-pause')) {
 	    document.getElementById('locate').classList.remove('invisible');
-	    document.getElementById('recordplaypause').classList.remove('pause-btn');
-	    document.getElementById('recordplaypause').classList.add('play-btn');
+	    document.getElementById('recordplaypause').classList.remove('icon-media-pause');
+	    document.getElementById('recordplaypause').classList.add('icon-media-play');
 	    document.getElementById('share').classList.remove('invisible');
 
 	    navigator.geolocation.clearWatch(this._trackingHandler);
 	    this._trackingHandler = null;
 	} else {
 	    document.getElementById('locate').classList.add('invisible');
-	    document.getElementById('recordplaypause').classList.add('pause-btn');
-	    document.getElementById('recordplaypause').classList.remove('play-btn');
+	    document.getElementById('recordplaypause').classList.add('icon-media-pause');
+	    document.getElementById('recordplaypause').classList.remove('icon-media-play');
 
 	    var shareElem = document.getElementById('share')
 	    shareElem.classList.add('invisible');

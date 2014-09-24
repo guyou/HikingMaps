@@ -110,28 +110,15 @@ body[role="application"] section[role="region"] > header button {
 .bottom-btn:active {
     background-color: #008AAA !important;
 }
-.refresh-btn {
-    background-image: url("images/icons/refresh.png") !important;
+.gaia-icon[data-state="refreshing"]:before {
+    content: "\e6e1";
 }
-.refresh-btn[data-state="refreshing"] {
+.gaia-icon[data-state="refreshing"] {
     animation: 0.9s refresh-rotate infinite steps(30);
 }
 @keyframes refresh-rotate {
     from { transform: rotate(1deg); }
     to   { transform: rotate(360deg); }
-}
-
-.delete-btn {
-    background-image: url("images/icons/delete.png") !important;
-}
-.pause-btn {
-    background-image: url("images/icons/pause.png") !important;
-}
-.play-btn {
-    background-image: url("images/icons/play.png") !important;
-}
-.share-btn {
-    background-image: url("images/icons/share.png") !important;
 }
 
 .arrow-icon {
@@ -352,7 +339,16 @@ form[role="name"] p textarea + button[type="reset"] {
     pointer-events: all;
 }
 
+a.bottom-btn {
+    color: #fff;
+}
+
+.gaia-icon:before {
+    position: relative;
+}
+
 button, [role="button"], .button {
+    font-style: normal;
     box-sizing: border-box;
     cursor: default;
 }
