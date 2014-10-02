@@ -352,3 +352,15 @@ button, [role="button"], .button {
     box-sizing: border-box;
     cursor: default;
 }
+
+.popup {
+    position: fixed;
+    left: 2rem;
+    top: 2rem;
+    right: 2rem;
+    bottom: 2rem;
+    width: calc(100vw - 4rem);
+    height: calc(100vh - 4rem);
+    background-color: rgba(255, 255, 255, 0.9);
+    z-index: 200;
+}

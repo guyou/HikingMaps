@@ -144,6 +144,7 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
 	var deferred = {
 	    _fn: null,
+	    _url : url,
 
 	    then: function (fn) {
 		this._fn = fn;
@@ -177,7 +178,9 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 		xhr.addEventListener('load', function () {
 		    if (xhr.status === 200) {
 			var blob = xhr.response;
-			self._db.put(url, blob, xhr.getResponseHeader('ETag'));
+			var etag = xhr.getResponseHeader('ETag');
+
+			self._db.put(url, blob, etag);
 			deferred.resolve(blob);
 		    } else {
 			self._db.get(url, function (arg) {
@@ -496,6 +499,12 @@ var Application = L.Class.extend({
 
 	this._createTrack();
 
+	document.getElementById('show-elev-plot').addEventListener('click',
+								   L.bind(this.doShowElevPlot, this), false);
+	document.getElementById('elevation-plot').addEventListener('click', function () {
+		document.getElementById('elevation-plot').classList.add('invisible');
+	}, false);
+
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
@@ -521,7 +530,7 @@ var Application = L.Class.extend({
 		document.getElementById('trackfilename').setAttribute('value', name);
 		self.loadRoute(a.result.blob);
 	    };
-	    a.onerror = function() { console.log('Failure when trying to pick an file'); };
+	    a.onerror = function() { console.log('Failure when trying to pick a file'); };
 	}, false);
 
 	var trackFileClear = document.getElementById('trackfileclear');
@@ -688,6 +697,39 @@ var Application = L.Class.extend({
 	this._positionMarker.setIcon(this._directionIcon);
 	this._positionMarker.setLatLng(this._pathTracker.getPosition());
 	this._positionMarker.addTo(this._map);
+    },
+
+    doShowElevPlot: function () {
+	var canvas = document.getElementById('elevation-plot');
+	canvas.classList.remove('invisible');
+
+	canvas.width = canvas.clientWidth;
+	canvas.height = canvas.clientHeight;
+
+	var ctx = canvas.getContext('2d');
+	ctx.lineWidth = 1;
+
+	ctx.beginPath();
+	ctx.moveTo(40, 10);
+	ctx.lineTo(40, canvas.height - 20);
+	ctx.lineTo(canvas.width - 5, canvas.height - 20);
+	ctx.strokeStyle = '#222';
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.moveTo(40, canvas.height - 20);
+	ctx.lineTo(40, 15);
+	ctx.lineTo(50, 20);
+	ctx.lineTo(60, 10);
+	ctx.lineTo(70, 50);
+	ctx.lineTo(80, 30);
+	ctx.lineTo(90, 10);
+	ctx.lineTo(canvas.width - 5, 13);
+	ctx.lineTo(canvas.width - 5, canvas.height - 20);
+	ctx.fillStyle = '#77f';
+	ctx.fill();
+	ctx.strokeStyle = '#119';
+	ctx.stroke();
     },
 
     doLocate: function () {
