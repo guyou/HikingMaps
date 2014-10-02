@@ -709,25 +709,52 @@ var Application = L.Class.extend({
 	var ctx = canvas.getContext('2d');
 	ctx.lineWidth = 1;
 
+	var minElev = this._pathTracker.getMinElevation();
+	var maxElev = this._pathTracker.getMaxElevation();
+	var length = this._pathTracker.getLength();
+	var latlngs = this._trackLayer.getLatLngs();
+
+	if (minElev >= maxElev) {
+	    return;
+	}
+
 	ctx.beginPath();
 	ctx.moveTo(40, 10);
 	ctx.lineTo(40, canvas.height - 20);
-	ctx.lineTo(canvas.width - 5, canvas.height - 20);
+	ctx.lineTo(canvas.width - 10, canvas.height - 20);
 	ctx.strokeStyle = '#222';
 	ctx.stroke();
 
 	ctx.beginPath();
-	ctx.moveTo(40, canvas.height - 20);
-	ctx.lineTo(40, 15);
-	ctx.lineTo(50, 20);
-	ctx.lineTo(60, 10);
-	ctx.lineTo(70, 50);
-	ctx.lineTo(80, 30);
-	ctx.lineTo(90, 10);
-	ctx.lineTo(canvas.width - 5, 13);
-	ctx.lineTo(canvas.width - 5, canvas.height - 20);
-	ctx.fillStyle = '#77f';
-	ctx.fill();
+
+	var dist = 0;
+	for (var j in latlngs) {
+	    var prev = null;
+
+	    for (var i in latlngs[j]) {
+		var point = latlngs[j][i];
+
+		var y = ((point.alt < minElev)
+			 ? minElev : ((point.alt > maxElev)
+				      ? maxElev : point.alt)) - minElev;
+		y = (y / (maxElev - minElev)) * (canvas.height - 30);
+
+		if (prev !== null) {
+		    dist += prev.distanceTo(point);
+		}
+
+		var x = (dist / length) * (canvas.width - 50);
+
+		if (prev !== null) {
+		    ctx.lineTo(x + 40, canvas.height - y - 20);
+		} else {
+		    ctx.moveTo(x + 40, canvas.height - y - 20);
+		}
+
+		prev = point;
+	    }
+	}
+
 	ctx.strokeStyle = '#119';
 	ctx.stroke();
     },
