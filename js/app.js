@@ -760,6 +760,7 @@ var Application = L.Class.extend({
 
 	ctx.lineTo(canvas.width - 10, canvas.height - 10);
 	ctx.lineTo(10, canvas.height - 10);
+	ctx.closePath();
 	ctx.fillStyle = '#88f';
 	ctx.fill();
     },
