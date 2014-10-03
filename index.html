@@ -37,42 +37,41 @@
 		<h1 data-l10n-id="statistics-heading">Statistics</h1>
       </header>
 
-	  <table>
-		<tbody>
-		  <tr><th colspan="2" data-l10n-id="statistics-distance">distance</th></tr>
-		  <tr><td colspan="2" id="stats-distance">-</td></tr>
-		</tbody>
-
-		<tbody>
-		  <tr><th colspan="2" data-l10n-id="statistics-time">time</th></tr>
-		  <tr><th data-l10n-id="statistics-moving">moving</th><th data-l10n-id="statistics-total">total</th></tr>
-		  <tr><td id="stats-moving-time">-</td><td id="stats-total-time">-</td></tr>
-		</tbody>
-
-		<tbody>
-		  <tr><th colspan="2" data-l10n-id="statistics-moving-speed">moving speed</th></tr>
-		  <tr><td colspan="2" id="stats-moving-speed">-</td></tr>
-		</tbody>
-
-		<tbody>
-		  <tr><th colspan="2" data-l10n-id="statistics-elevation-min-max">elevation</th></tr>
-		  <tr><th data-l10n-id="statistics-min">min</th><th data-l10n-id="statistics-max">max</th></tr>
-		  <tr><td id="stats-min-elevation">-</td><td id="stats-max-elevation">-</td></tr>
-		</tbody>
-
-		<tbody>
-		  <tr><th colspan="2" data-l10n-id="statistics-elevation-loss-gain">elevation</th></tr>
-		  <tr><th data-l10n-id="statistics-loss">loss</th><th data-l10n-id="statistics-gain">gain</th></tr>
-		  <tr><td id="stats-elevation-loss">-</td><td id="stats-elevation-gain">-</td></tr>
-		</tbody>
-	  </table>
-
 	  <nav>
-		<h2 data-l10n-id="statistics-analysis">Analysis</h2>
-	  </nav>
+		<table>
+		  <tbody>
+			<tr><th colspan="2" data-l10n-id="statistics-distance">distance</th></tr>
+			<tr><td colspan="2" id="stats-distance">-</td></tr>
+		  </tbody>
 
-	  <button id="show-elev-plot" data-l10n-id="elevation-plot">Elevation Plot</button>
-	  <canvas id="elevation-plot" class="popup invisible" />
+		  <tbody>
+			<tr><th colspan="2" data-l10n-id="statistics-time">time</th></tr>
+			<tr><th data-l10n-id="statistics-moving">moving</th><th data-l10n-id="statistics-total">total</th></tr>
+			<tr><td id="stats-moving-time">-</td><td id="stats-total-time">-</td></tr>
+		  </tbody>
+
+		  <tbody>
+			<tr><th colspan="2" data-l10n-id="statistics-moving-speed">moving speed</th></tr>
+			<tr><td colspan="2" id="stats-moving-speed">-</td></tr>
+		  </tbody>
+
+		  <tbody>
+			<tr><th colspan="2" data-l10n-id="statistics-elevation-min-max">elevation</th></tr>
+			<tr><th data-l10n-id="statistics-min">min</th><th data-l10n-id="statistics-max">max</th></tr>
+			<tr><td id="stats-min-elevation">-</td><td id="stats-max-elevation">-</td></tr>
+		  </tbody>
+
+		  <tbody>
+			<tr><th colspan="2" data-l10n-id="statistics-elevation-loss-gain">elevation</th></tr>
+			<tr><th data-l10n-id="statistics-loss">loss</th><th data-l10n-id="statistics-gain">gain</th></tr>
+			<tr><td id="stats-elevation-loss">-</td><td id="stats-elevation-gain">-</td></tr>
+		  </tbody>
+		</table>
+
+		<h2 id="header-elevation-plot" data-l10n-id="stats-elevation-plot" class="invisible">Elevation Plot</h2>
+
+		<canvas id="elevation-plot" class="plot invisible" />
+	  </nav>
 	</section>
 
     <section id="main-view" class="view">
@@ -168,7 +167,7 @@
 			<header><h2 data-l10n-id="settings-info">Information</h2></header>
 
 			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.7.dev</span><br />
+			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.7.dev.6</span><br />
 				 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 

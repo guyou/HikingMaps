@@ -499,12 +499,6 @@ var Application = L.Class.extend({
 
 	this._createTrack();
 
-	document.getElementById('show-elev-plot').addEventListener('click',
-								   L.bind(this.doShowElevPlot, this), false);
-	document.getElementById('elevation-plot').addEventListener('click', function () {
-		document.getElementById('elevation-plot').classList.add('invisible');
-	}, false);
-
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
@@ -701,6 +695,21 @@ var Application = L.Class.extend({
 
     doShowElevPlot: function () {
 	var canvas = document.getElementById('elevation-plot');
+
+	var minElev = this._pathTracker.getMinElevation();
+	var maxElev = this._pathTracker.getMaxElevation();
+	var length = this._pathTracker.getLength();
+	var latlngs = this._trackLayer.getLatLngs();
+
+	if ((minElev >= maxElev) ||
+	    document.getElementById('recordplaypause').classList.contains('icon-media-pause')) {
+	    document.getElementById('header-elevation-plot').classList.add('invisible');
+	    canvas.classList.add('invisible');
+
+	    return;
+	}
+
+	document.getElementById('header-elevation-plot').classList.remove('invisible');
 	canvas.classList.remove('invisible');
 
 	canvas.width = canvas.clientWidth;
@@ -709,19 +718,10 @@ var Application = L.Class.extend({
 	var ctx = canvas.getContext('2d');
 	ctx.lineWidth = 1;
 
-	var minElev = this._pathTracker.getMinElevation();
-	var maxElev = this._pathTracker.getMaxElevation();
-	var length = this._pathTracker.getLength();
-	var latlngs = this._trackLayer.getLatLngs();
-
-	if (minElev >= maxElev) {
-	    return;
-	}
-
 	ctx.beginPath();
-	ctx.moveTo(40, 10);
-	ctx.lineTo(40, canvas.height - 20);
-	ctx.lineTo(canvas.width - 10, canvas.height - 20);
+	ctx.moveTo(10, 10);
+	ctx.lineTo(10, canvas.height - 10);
+	ctx.lineTo(canvas.width - 10, canvas.height - 10);
 	ctx.strokeStyle = '#222';
 	ctx.stroke();
 
@@ -737,18 +737,18 @@ var Application = L.Class.extend({
 		var y = ((point.alt < minElev)
 			 ? minElev : ((point.alt > maxElev)
 				      ? maxElev : point.alt)) - minElev;
-		y = (y / (maxElev - minElev)) * (canvas.height - 30);
+		y = (y / (maxElev - minElev)) * (canvas.height - 20);
 
 		if (prev !== null) {
 		    dist += prev.distanceTo(point);
 		}
 
-		var x = (dist / length) * (canvas.width - 50);
+		var x = (dist / length) * (canvas.width - 20);
 
 		if (prev !== null) {
-		    ctx.lineTo(x + 40, canvas.height - y - 20);
+		    ctx.lineTo(x + 10, canvas.height - y - 10);
 		} else {
-		    ctx.moveTo(x + 40, canvas.height - y - 20);
+		    ctx.moveTo(x + 10, canvas.height - y - 10);
 		}
 
 		prev = point;
@@ -757,6 +757,11 @@ var Application = L.Class.extend({
 
 	ctx.strokeStyle = '#119';
 	ctx.stroke();
+
+	ctx.lineTo(canvas.width - 10, canvas.height - 10);
+	ctx.lineTo(10, canvas.height - 10);
+	ctx.fillStyle = '#88f';
+	ctx.fill();
     },
 
     doLocate: function () {
@@ -885,6 +890,7 @@ var Application = L.Class.extend({
 	    delete mainView.dataset.viewport;
 	} else {
 	    this._updateStatistics();
+	    this.doShowElevPlot();
 	    mainView.dataset.viewport = 'side';
 	}
     },

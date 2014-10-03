@@ -55,7 +55,7 @@ body {
 section.window > div {
     height: calc(100vh - 5rem);
     width: 100%;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 section.window > div.map {
@@ -139,12 +139,8 @@ body[role="application"] section[role="region"] > header button {
     bottom: 0;
 }
 
-#settings-view {
-    overflow-y: scroll;
-}
-
 #files {
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .leaflet-container .leaflet-control-attribution {
@@ -155,7 +151,11 @@ body[role="application"] section[role="region"] > header button {
     bottom: 4rem;
 }
 
-section[data-type="sidebar"] > table {
+section[data-type="sidebar"] > nav {
+    height: calc(100vh - 5rem);
+}
+
+section[data-type="sidebar"] > nav > table {
     width: 100%;
     color: #fff;
     font-family: sans-serif;
@@ -164,50 +164,50 @@ section[data-type="sidebar"] > table {
     text-decoration: none;
 }
 
-section[data-type="sidebar"] > table > tbody > tr:first-child > th {
+section[data-type="sidebar"] > nav > table > tbody > tr:first-child > th {
     border-top: solid 0.1rem #272727;
     padding-top: 1rem;
 }
 
-section[data-type="sidebar"] > table > tbody:first-child > tr > th {
+section[data-type="sidebar"] > nav > table > tbody:first-child > tr > th {
     padding-top: 2rem;
     border: none;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > th:first-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > th:first-child {
     width: 50%;
     text-align: right;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > th:last-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > th:last-child {
     width: 50%;
     text-align: left;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > th:only-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > th:only-child {
     text-align: center;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > th {
+section[data-type="sidebar"] > nav > table > tbody > tr > th {
     font-weight: normal;
     padding: 0rem 1rem;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > td:first-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > td:first-child {
     width: 50%;
     text-align: right;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > td:last-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > td:last-child {
     width: 50%;
     text-align: left;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > td:only-child {
+section[data-type="sidebar"] > nav > table > tbody > tr > td:only-child {
     text-align: center;
 }
 
-section[data-type="sidebar"] > table > tbody > tr > td {
+section[data-type="sidebar"] > nav > table > tbody > tr > td {
     font-style: italic;
     font-weight: bold;
     padding: 0rem 1rem 1rem 1rem;
@@ -353,14 +353,9 @@ button, [role="button"], .button {
     cursor: default;
 }
 
-.popup {
-    position: fixed;
-    left: 2rem;
-    top: 2rem;
-    right: 2rem;
-    bottom: 2rem;
-    width: calc(100vw - 4rem);
-    height: calc(100vh - 4rem);
-    background-color: rgba(255, 255, 255, 0.9);
-    z-index: 200;
+.plot {
+    margin: 1rem;
+    width: calc(100% - 3rem);
+    height: calc(60vw - 2rem);
+    background-color: rgb(224, 224, 224);
 }
