@@ -68,7 +68,7 @@ L.GPX = L.FeatureGroup.extend({
     // Base icon class for track pins.
     L.GPXTrackIcon = L.Icon.extend({ options: options.marker_options });
 
-    this._gpx = gpx;
+    this._latlngs = [];
     this._layers = {};
     this._info = {
       name: null, desc: null, author: null, copyright: null,
@@ -86,11 +86,6 @@ L.GPX = L.FeatureGroup.extend({
   get_author:          function() { return this._info.author; },
   get_copyright:       function() { return this._info.copyright; },
   get_distance:        function() { return this._info.length; },
-
-  reload: function() {
-    this.clearLayers();
-    this._parse(this._gpx, this.options, this.options.async);
-  },
 
   // Private methods
   _merge_objs: function(a, b) {
@@ -160,6 +155,7 @@ L.GPX = L.FeatureGroup.extend({
       for (i = 0; i < el.length; i++) {
         var coords = this._parse_trkseg(el[i], options, tags[j][1]);
         if (coords.length === 0) continue;
+        this._latlngs.push(coords);
 
         // add track
         var l = new L.Polyline(coords, options.polyline_options);
@@ -225,7 +221,7 @@ L.GPX = L.FeatureGroup.extend({
         ll.ts = new Date(Date.parse(_[0].textContent));
       }
 
-      if (last != null && tag != 'wpt') {
+      if (last !== null && tag != 'wpt') {
         this._info.length += last.distanceTo(ll);
       }
 

@@ -712,22 +712,29 @@ var Application = L.Class.extend({
 	document.getElementById('header-elevation-plot').classList.remove('invisible');
 	canvas.classList.remove('invisible');
 
-	canvas.width = canvas.clientWidth;
-	canvas.height = canvas.clientHeight;
+	var DEVICE_RATIO = window.devicePixelRatio || 1;
+	canvas.width = Math.floor(canvas.clientWidth * DEVICE_RATIO + .5);
+	canvas.height = Math.floor(canvas.clientHeight * DEVICE_RATIO + .5);
 
 	var ctx = canvas.getContext('2d');
-	ctx.lineWidth = 1;
+	ctx.lineWidth = DEVICE_RATIO;
+	ctx.lineJoin = 'round';
+	ctx.lineCap = 'round';
 
 	ctx.beginPath();
 	ctx.moveTo(10, 10);
 	ctx.lineTo(10, canvas.height - 10);
 	ctx.lineTo(canvas.width - 10, canvas.height - 10);
-	ctx.strokeStyle = '#222';
+	ctx.strokeStyle = '#444';
 	ctx.stroke();
 
 	ctx.beginPath();
 
 	var dist = 0;
+	var curX = 0;
+	var sumY = 0;
+	var numY = 0;
+
 	for (var j in latlngs) {
 	    var prev = null;
 
@@ -743,22 +750,42 @@ var Application = L.Class.extend({
 		    dist += prev.distanceTo(point);
 		}
 
-		var x = (dist / length) * (canvas.width - 20);
+		var x = Math.floor((dist / length) * (canvas.width - 20) + .5);
 
 		if (prev !== null) {
-		    ctx.lineTo(x + 10, canvas.height - y - 10);
+		    if (x > curX) {
+			ctx.lineTo(curX + 10, canvas.height - sumY / numY - 10);
+			curX = x;
+			sumY = y;
+			numY = 1;
+		    } else {
+			sumY += y;
+			numY++;
+		    }
 		} else {
-		    ctx.moveTo(x + 10, canvas.height - y - 10);
+		    if (x == 0) {
+			ctx.moveTo(x + 10, canvas.height - y - 10);
+		    } else {
+			ctx.lineTo(x + 10, canvas.height - y - 10);
+		    }
+
+		    curX = x + 1;
+		    sumY = 0;
+		    numY = 0;
 		}
 
 		prev = point;
 	    }
 	}
 
+	if (numY > 0) {
+	    ctx.lineTo(curX + 10, canvas.height - sumY / numY - 10);
+	}
+
 	ctx.strokeStyle = '#119';
 	ctx.stroke();
 
-	ctx.lineTo(canvas.width - 10, canvas.height - 10);
+	ctx.lineTo(curX + 10, canvas.height - 10);
 	ctx.lineTo(10, canvas.height - 10);
 	ctx.closePath();
 	ctx.fillStyle = '#88f';
