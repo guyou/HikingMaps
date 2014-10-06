@@ -199,8 +199,11 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
 var PathTracker = L.Class.extend ({
     initialize: function () {
-	this._curTimestamp = null;
+	this._started = false;
+	this._prevTimestamp = null;
 	this._moveTimestamp = null;
+	this._isStationary = true;
+	this._curHeading = 0;
 	this._curPos = null;
 	this._prevPos = null;
 	this._moveDuration = 0;
@@ -214,7 +217,8 @@ var PathTracker = L.Class.extend ({
     },
 
     start: function () {
-	this._curTimestamp = null;
+	this._started = false;
+	this._prevTimestamp = null;
 	this._moveTimestamp = null;
 	this._prevAlt = [-Infinity, Infinity];
     },
@@ -239,6 +243,14 @@ var PathTracker = L.Class.extend ({
 	return this._elevLoss;
     },
 
+    isStationary: function () {
+	return this._isStationary;
+    },
+
+    getHeading: function () {
+	return this._curHeading;
+    },
+
     getPosition: function () {
 	return this._curPos;
     },
@@ -255,23 +267,27 @@ var PathTracker = L.Class.extend ({
 	return this._waitDuration;
     },
 
-    onPosition: function (isStationary, ts, coords) {
+    onPosition: function (ts, coords) {
+	this._isStationary = (coords.speed === 0) ||
+	    ((coords.heading !== null) && isNaN(coords.heading));
+
 	this._curPos = new L.LatLng(coords.latitude, coords.longitude,
 				    coords.altitude);
 	this._curPos.ts = ts;
 
-	if (! isStationary)
-	{
-	    var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
-				       ? coords.altitudeAccuracy
-				       : 0
-				       , 4);
-	    var minAlt = (coords.altitude !== null)
-		? (coords.altitude - altAccuracy) : -Infinity;
-	    var maxAlt = (coords.altitude !== null)
-		? (coords.altitude + altAccuracy) : +Infinity;
-	    var curAlt = [minAlt, maxAlt];
+	var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
+				   ? coords.altitudeAccuracy : 0
+				   , 4);
+	var minAlt = (coords.altitude !== null)
+	    ? (coords.altitude - altAccuracy) : -Infinity;
+	var maxAlt = (coords.altitude !== null)
+	    ? (coords.altitude + altAccuracy) : +Infinity;
+	var curAlt = [minAlt, maxAlt];
+	var startPos = null;
 
+	if (! this._isStationary)
+	{
+	    this._curHeading = coords.heading;
 	    this._minElev = Math.min(this._minElev,
 				     (coords.altitude !== null)
 				     ? coords.altitude : Infinity);
@@ -279,18 +295,16 @@ var PathTracker = L.Class.extend ({
 				     (coords.altitude !== null)
 				     ? coords.altitude : -Infinity);
 
-	    if (this._curTimestamp !== null) {
-		if (this._prevPos !== null) {
-		    this._length += this._prevPos.distanceTo(this._curPos);
-		}
+	    if (this._prevPos !== null) {
+		this._length += this._prevPos.distanceTo(this._curPos);
 
 		if ((this._moveTimestamp !== null) &&
 		    (ts - this._moveTimestamp < 2.5)) {
 		    // we had a very short wait - count it as moving instead
 		    this._moveDuration += ts - this._moveTimestamp;
-		    this._waitDuration -= this._curTimestamp - this._moveTimestamp;
+		    this._waitDuration -= this._prevTimestamp - this._moveTimestamp;
 		} else {
-		    this._moveDuration += ts - this._curTimestamp;
+		    this._moveDuration += ts - this._prevTimestamp;
 		}
 
 		curAlt[0] = Math.min(maxAlt, Math.max(this._prevAlt[0], minAlt));
@@ -304,18 +318,26 @@ var PathTracker = L.Class.extend ({
 		}
 	    }
 
+	    if (!this._started) {
+		this._started = true;
+		startPos = this._prevPos || this._curPos;
+	    }
 	    this._prevPos = this._curPos;
 	    this._prevAlt = curAlt;
 	    this._moveTimestamp = ts;
 	} else {
-	    if (this._curTimestamp !== null) {
-		this._waitDuration += ts - this._curTimestamp;
+	    if (this._prevTimestamp !== null) {
+		this._waitDuration += ts - this._prevTimestamp;
+	    }
+
+	    if (! this._started) {
+		this._prevPos = this._curPos;
+		this._prevAlt = curAlt;
 	    }
 	}
 
-	var result = this._curTimestamp === null;
-	this._curTimestamp = ts;
-	return result;
+	this._prevTimestamp = ts;
+	return startPos;
     }
 });
 
@@ -419,6 +441,8 @@ var Application = L.Class.extend({
 	this._trackingHandler = null;
 	this._pathTracker = null;
 
+	this._deferredUpdate = false;
+
 	this._initDb();
     },
 
@@ -498,6 +522,8 @@ var Application = L.Class.extend({
 	var cacheDB = new TileCacheDb(this._db);
 
 	this._createTrack();
+
+	document.addEventListener('visibilitychange', L.bind(this.doDeferredUpdate, this), false);
 
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
@@ -665,32 +691,60 @@ var Application = L.Class.extend({
     },
 
     _positionUpdated: function (e) {
-	var isStationary = (e.coords.speed === 0) ||
-	    ((e.coords.heading !== null) && isNaN(e.coords.heading));
-	var isNewSeg = this._pathTracker.onPosition(isStationary, e.timestamp, e.coords);
+	var startPos = this._pathTracker.onPosition(e.timestamp, e.coords);
 
-	if (isNewSeg) {
-	    this._trackLayer.addSegment();
-	}
-
-	if (! isStationary) {
-	    var pos = this._pathTracker.getPosition();
+	var pos = this._pathTracker.getPosition();
+	if (! this._pathTracker.isStationary()) {
+	    if (startPos !== null) {
+		this._trackLayer.addSegment();
+		if (! startPos.equals(pos, 0)) {
+		    this._trackLayer.addLatLng(startPos);
+		}
+	    }
 
 	    this._trackLayer.addLatLng(pos);
+
+	    if (! document.hidden) {
+		this._map.panTo(pos);
+
+		var len = this._pathTracker.getLength();
+		document.getElementById('track-length').textContent =
+		    this.formatDistance(len, '');
+
+		this._directionIcon.setDirection(this._pathTracker.getHeading());
+	    }
+	} else if (startPos !== null) {
+	    if (! document.hidden) {
+		this._map.panTo(pos);
+	    }
+	}
+
+	if (! document.hidden) {
+	    this._positionMarker.setIcon(this._directionIcon);
+	    this._positionMarker.setLatLng(pos);
+	    this._positionMarker.addTo(this._map);
+	} else {
+	    this._deferredUpdate = true;
+	}
+    },
+
+    doDeferredUpdate: function () {
+	if (this._deferredUpdate && ! document.hidden) {
+	    var pos = this._pathTracker.getPosition();
+	    var len = this._pathTracker.getLength();
+
 	    this._map.panTo(pos);
 
-	    var len = this._pathTracker.getLength();
 	    document.getElementById('track-length').textContent =
 		this.formatDistance(len, '');
 
-	    this._directionIcon.setDirection(e.coords.heading);
-	} else if (isNewSeg) {
-	    this._map.panTo(this._pathTracker.getPosition());
-	}
+	    this._directionIcon.setDirection(this._pathTracker.getHeading());
+	    this._positionMarker.setIcon(this._directionIcon);
+	    this._positionMarker.setLatLng(pos);
+	    this._positionMarker.addTo(this._map);
 
-	this._positionMarker.setIcon(this._directionIcon);
-	this._positionMarker.setLatLng(this._pathTracker.getPosition());
-	this._positionMarker.addTo(this._map);
+	    this._deferredUpdate = false;
+	}
     },
 
     doShowElevPlot: function () {
