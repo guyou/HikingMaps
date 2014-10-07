@@ -757,13 +757,13 @@ var Application = L.Class.extend({
 
 	if ((minElev >= maxElev) ||
 	    document.getElementById('recordplaypause').classList.contains('icon-media-pause')) {
-	    document.getElementById('header-elevation-plot').classList.add('invisible');
+	    document.getElementById('elevation-unavailable').classList.remove('invisible');
 	    canvas.classList.add('invisible');
 
 	    return;
 	}
 
-	document.getElementById('header-elevation-plot').classList.remove('invisible');
+	document.getElementById('elevation-unavailable').classList.add('invisible');
 	canvas.classList.remove('invisible');
 
 	var DEVICE_RATIO = window.devicePixelRatio || 1;

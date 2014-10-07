@@ -353,7 +353,15 @@ button, [role="button"], .button {
     cursor: default;
 }
 
-.plot {
+p.plot {
+    margin-top: 1rem;
+    margin-left: 3rem;
+    color: #fff;
+    font-family: serif;
+    font-size: 1.4rem;
+}
+
+canvas.plot {
     margin: 1rem;
     width: calc(100% - 3rem);
     height: calc(60vw - 2rem);
