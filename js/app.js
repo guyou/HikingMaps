@@ -795,7 +795,7 @@ var Application = L.Class.extend({
 		var point = latlngs[j][i];
 		var alt = point.alt;
 
-		if (alt === null) {
+		if (alt === undefined) {
 		    continue;
 		}
 
