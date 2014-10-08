@@ -268,20 +268,21 @@ var PathTracker = L.Class.extend ({
     },
 
     onPosition: function (ts, coords) {
+	// try to filter out bogus data
 	this._isStationary = (coords.speed === 0) ||
 	    ((coords.heading !== null) && isNaN(coords.heading));
+	var altitude = (coords.altitude !== null)
+	    ? (((coords.altitude !== 0) || (coords.speed !== 0))
+	       ? coords.altitude : undefined) : undefined;
 
-	this._curPos = new L.LatLng(coords.latitude, coords.longitude,
-				    coords.altitude);
+	this._curPos = new L.LatLng(coords.latitude, coords.longitude, altitude);
 	this._curPos.ts = ts;
 
 	var altAccuracy = Math.max((coords.altitudeAccuracy !== null)
 				   ? coords.altitudeAccuracy : 0
 				   , 4);
-	var minAlt = (coords.altitude !== null)
-	    ? (coords.altitude - altAccuracy) : -Infinity;
-	var maxAlt = (coords.altitude !== null)
-	    ? (coords.altitude + altAccuracy) : +Infinity;
+	var minAlt = (altitude !== undefined) ? (altitude - altAccuracy) : -Infinity;
+	var maxAlt = (altitude !== undefined) ? (altitude + altAccuracy) : +Infinity;
 	var curAlt = [minAlt, maxAlt];
 	var startPos = null;
 
@@ -289,11 +290,9 @@ var PathTracker = L.Class.extend ({
 	{
 	    this._curHeading = coords.heading;
 	    this._minElev = Math.min(this._minElev,
-				     (coords.altitude !== null)
-				     ? coords.altitude : Infinity);
+				     (altitude !== undefined) ? altitude : Infinity);
 	    this._maxElev = Math.max(this._maxElev,
-				     (coords.altitude !== null)
-				     ? coords.altitude : -Infinity);
+				     (altitude !== undefined) ? altitude : -Infinity);
 
 	    if (this._prevPos !== null) {
 		this._length += this._prevPos.distanceTo(this._curPos);
@@ -794,10 +793,15 @@ var Application = L.Class.extend({
 
 	    for (var i in latlngs[j]) {
 		var point = latlngs[j][i];
+		var alt = point.alt;
 
-		var y = ((point.alt < minElev)
-			 ? minElev : ((point.alt > maxElev)
-				      ? maxElev : point.alt)) - minElev;
+		if (alt === null) {
+		    continue;
+		}
+
+		var y = ((alt < minElev)
+			 ? minElev : ((alt > maxElev)
+				      ? maxElev : alt)) - minElev;
 		y = (y / (maxElev - minElev)) * (canvas.height - 20);
 
 		if (prev !== null) {
@@ -997,7 +1001,7 @@ var Application = L.Class.extend({
 		var point = seg[i];
 		data.push('<trkpt lat="' + point.lat +
 			  '" lon="' + point.lng + '">' +
-			  ((point.alt !== null) ? ('<ele>' + point.alt + '</ele>') : '') +
+			  ((point.alt !== undefined) ? ('<ele>' + point.alt + '</ele>') : '') +
 			  '<time>' + new Date(point.ts).toISOString() + '</time>' +
 			  '</trkpt>\n');
 	    }
