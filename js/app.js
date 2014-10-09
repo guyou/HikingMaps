@@ -784,7 +784,8 @@ var Application = L.Class.extend({
 	ctx.beginPath();
 
 	var dist = 0;
-	var curX = 0;
+	var startX = undefined;
+	var curX = undefined;
 	var sumY = 0;
 	var numY = 0;
 
@@ -795,6 +796,12 @@ var Application = L.Class.extend({
 		var point = latlngs[j][i];
 		var alt = point.alt;
 
+		if (prev !== null) {
+		    dist += prev.distanceTo(point);
+		}
+
+		prev = point;
+
 		if (alt === undefined) {
 		    continue;
 		}
@@ -804,13 +811,13 @@ var Application = L.Class.extend({
 				      ? maxElev : alt)) - minElev;
 		y = (y / (maxElev - minElev)) * (canvas.height - 20);
 
-		if (prev !== null) {
-		    dist += prev.distanceTo(point);
+		var x = Math.floor((dist / length) * (canvas.width - 20) + .5);
+		if (startX === undefined) {
+		    startX = x;
+		    ctx.moveTo(x + 10, canvas.height - y - 10);
 		}
 
-		var x = Math.floor((dist / length) * (canvas.width - 20) + .5);
-
-		if (prev !== null) {
+		if (curX !== undefined) {
 		    if (x > curX) {
 			ctx.lineTo(curX + 10, canvas.height - sumY / numY - 10);
 			curX = x;
@@ -821,18 +828,12 @@ var Application = L.Class.extend({
 			numY++;
 		    }
 		} else {
-		    if (x == 0) {
-			ctx.moveTo(x + 10, canvas.height - y - 10);
-		    } else {
-			ctx.lineTo(x + 10, canvas.height - y - 10);
-		    }
+		    ctx.lineTo(x + 10, canvas.height - y - 10);
 
 		    curX = x + 1;
 		    sumY = 0;
 		    numY = 0;
 		}
-
-		prev = point;
 	    }
 	}
 
@@ -844,7 +845,7 @@ var Application = L.Class.extend({
 	ctx.stroke();
 
 	ctx.lineTo(curX + 10, canvas.height - 10);
-	ctx.lineTo(10, canvas.height - 10);
+	ctx.lineTo(startX + 10, canvas.height - 10);
 	ctx.closePath();
 	ctx.fillStyle = '#88f';
 	ctx.fill();
