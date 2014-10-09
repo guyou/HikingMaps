@@ -129,6 +129,10 @@ var FunctionalTileLayer = L.TileLayer.extend({
 });
 
 var CachedTileLayer = FunctionalTileLayer.extend({
+    options: {
+	isQuadKey: false
+    },
+
     initialize: function (url, db, options) {
 	this._db = db;
 	this._offline = false;
@@ -137,6 +141,34 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
     setOffline: function (val) {
 	this._offline = val;
+    },
+
+    getTileUrl: function (tilePoint) {
+	if (this.options.isQuadKey) {
+            return L.Util.template(this._url, {
+		s: this._getSubdomain(tilePoint),
+		q: this._quadKey(tilePoint.x, tilePoint.y, this._getZoomForUrl())
+            });
+	} else {
+	    return FunctionalTileLayer.prototype.getTileUrl.call(this, tilePoint);
+	}
+    },
+
+    _quadKey: function (x, y, z) {
+        var quadKey = [];
+        for (var i = z; i > 0; i--) {
+            var digit = '0';
+            var mask = 1 << (i - 1);
+            if ((x & mask) != 0) {
+                digit++;
+            }
+            if ((y & mask) != 0) {
+                digit++;
+                digit++;
+            }
+            quadKey.push(digit);
+        }
+        return quadKey.join('');
     },
 
     _getTileAsync : function (coords) {
