@@ -130,7 +130,7 @@ var FunctionalTileLayer = L.TileLayer.extend({
 
 var CachedTileLayer = FunctionalTileLayer.extend({
     options: {
-	isQuadKey: false
+	quadKey: false
     },
 
     initialize: function (url, db, options) {
@@ -144,7 +144,7 @@ var CachedTileLayer = FunctionalTileLayer.extend({
     },
 
     getTileUrl: function (tilePoint) {
-	if (this.options.isQuadKey) {
+	if (this.options.quadKey) {
             return L.Util.template(this._url, {
 		s: this._getSubdomain(tilePoint),
 		q: this._quadKey(tilePoint.x, tilePoint.y, this._getZoomForUrl())
@@ -386,10 +386,10 @@ var mapInfo = [
       baseUrl : 'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
       subdomains : '1234',
       attribution : 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">' },
-    { name : 'OVI Terrain',
-      baseUrl : 'http://maptile.maps.svc.ovi.com/maptiler/maptile/newest/terrain.day/{z}/{x}/{y}/256/png8',
-      subdomains : '1',
-      attribution : 'Map data and imagery &copy; <a href="http://maps.ovi.com/">OVI</a>' },
+    { name : 'Bing OS',
+      baseUrl : 'http://ecn.t{s}.tiles.virtualearth.net/tiles/r{q}.png?g=677&productSet=mmOS',
+      subdomains : '01234567',
+      attribution : '&copy; <a href="http://bing.com/maps/">Bing</a>' },
     { name : 'Google Terrain',
       baseUrl : 'http://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
       subdomains : '1',
@@ -690,6 +690,7 @@ var Application = L.Class.extend({
 	return new CachedTileLayer(info.baseUrl, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
+				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
 				     subdomains: info.subdomains });
     },
 
