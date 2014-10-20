@@ -564,10 +564,7 @@ var Application = L.Class.extend({
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
 	document.getElementById('trackdelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
-	document.getElementById('share').addEventListener('click', this._useWebActivities
-							  ? L.bind(this.doShareTrack, this)
-							  : L.bind(this.doSaveTrack, this),
-							  false);
+	document.getElementById('share').addEventListener('click', L.bind(this.doShareTrack, this), false);
 	document.getElementById('menubutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
 	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
@@ -1051,26 +1048,45 @@ var Application = L.Class.extend({
     },
 
     _shareGpx: function (blob) {
-	new MozActivity({ name: 'share',
-			  data: {
-			      type: 'application/gpx+xml',
-			      number: 1,
-			      blobs: [blob],
-			      filepaths: [null]
-			  } });
+	var self = this;
+	var activity = new MozActivity({ name: 'share',
+					 data: {
+					     type: 'application/gpx+xml',
+					     number: 1,
+					     blobs: [blob],
+					     filepaths: [null]
+					 } });
+	activity.onerror = function () {
+	    if (activity.error.name == 'NO_PROVIDER') {
+		// fall back to browser file handling
+		self._saveGpx(blob);
+		document.getElementById('share').click();
+	    }
+	};
+
+	return false;
     },
 
-    doSaveTrack: function () {
+    _saveGpx: function (blob) {
 	var elem = document.getElementById('share');
-	if (! elem.hasAttribute('href')) {
-	    var gpxUrl = URL.createObjectURL(this._createGpx(this._trackLayer.getLatLngs()));
-	    elem.setAttribute('href', gpxUrl);
-	    elem.setAttribute('download', new Date().toISOString() + '.gpx');
-	}
+	var gpxUrl = URL.createObjectURL(blob);
+	elem.setAttribute('href', gpxUrl);
+	elem.setAttribute('download', new Date().toISOString() + '.gpx');
+	return true;
     },
 
     doShareTrack: function () {
-	this._shareGpx(this._createGpx(this._trackLayer.getLatLngs()));
+	var elem = document.getElementById('share');
+	if (! elem.hasAttribute('href')) {
+	    var blob = this._createGpx(this._trackLayer.getLatLngs());
+	    if (this._useWebActivities) {
+		return this._shareGpx(blob);
+	    } else {
+		return this._saveGpx(blob);
+	    }
+	}
+
+	return true;
     }
 });
 
