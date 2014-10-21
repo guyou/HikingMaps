@@ -109,19 +109,14 @@
 		  <section>
 			<header><h2 data-l10n-id="settings-route">Route</h2></header>
 
-			<form id="trackfilepickitem" role="name" class="invisible">
+			<form id="trackfilepickitem" role="name">
+			  <p class="invisible"><input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
 			  <button id="trackfilepick" data-l10n-id="pick" role="pick" type="button">Pick</button>
 			  <p>
 				<input id="trackfilename" data-l10n-id="settings-no-route" type="text" disabled="true" placeholder="None" value="" />
 				<button id="trackfileclear" type="reset">Clear</button>
 			  </p>
 			</form>
-
-			<ul data-type="list">
-			  <li id="trackfileitem" class="invisible">
-				<p><input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
-			  </li>
-			</ul>
 		  </section>
 
 		  <section>
@@ -168,7 +163,7 @@
 			<header><h2 data-l10n-id="settings-info">Information</h2></header>
 
 			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.8.dev.3</span><br />
+			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.8.dev.5</span><br />
 				 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 

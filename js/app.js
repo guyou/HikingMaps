@@ -572,31 +572,40 @@ var Application = L.Class.extend({
 	    cacheDB.clear();
 	}, false);
 
+	var trackFileInput = document.getElementById('trackfile');
 	var trackFilePick = document.getElementById('trackfilepick');
+	var trackFileName = document.getElementById('trackfilename');
 	trackFilePick.addEventListener('click', function (e) {
-	    var a = new MozActivity({ name: 'pick',
-				      data: { type: 'application/gpx+xml',
-					      multiple: false }});
-	    a.onsuccess = function() {
-		var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
-		document.getElementById('trackfilename').setAttribute('value', name);
-		self.loadRoute(a.result.blob);
-	    };
-	    a.onerror = function() { console.log('Failure when trying to pick a file'); };
+	    if (self._useWebActivities) {
+		var a = new MozActivity({ name: 'pick',
+					  data: { type: 'application/gpx+xml',
+						  multiple: false }});
+		a.onsuccess = function() {
+		    var name = a.result.blob.name.split('/').pop().replace('.gpx', '');
+		    trackFileName.setAttribute('value', name);
+		    self.loadRoute(a.result.blob);
+		};
+		a.onerror = function() {
+		    if (a.error.name == 'NO_PROVIDER') {
+			trackFileInput.click();
+		    }
+		};
+	    } else {
+		trackFileInput.click();
+	    }
 	}, false);
 
 	var trackFileClear = document.getElementById('trackfileclear');
 	trackFileClear.addEventListener('click', function (e) {
-	    document.getElementById('trackfilename').setAttribute('value', '');
+	    trackFileName.setAttribute('value', '');
+	    trackFileInput.setAttribute('value', '');
 	    self._clearRoute();
 	}, false);
 
-	var trackFileInput = document.getElementById('trackfile');
 	trackFileInput.addEventListener('change', function (e) {
+	    trackFileName.setAttribute('value', e.target.files[0].name);
 	    self.loadRoute(e.target.files[0]);
 	}, false);
-
-	document.getElementById(this._useWebActivities ? 'trackfilepickitem' : 'trackfileitem').classList.remove('invisible');
 
 	var mapLayerSelect = document.getElementById('maplayerselect');
 	for (var mapIdx in mapInfo) {
