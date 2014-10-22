@@ -1053,7 +1053,9 @@ var Application = L.Class.extend({
 	}
 
 	data.push('</trk></gpx>\n');
-	return new Blob(data, { 'type' : 'application/gpx+xml' });
+	var blob = new Blob(data, { 'type' : 'application/gpx+xml' });
+	blob.name = dateString + '.gpx';
+	return blob;
     },
 
     _shareGpx: function (blob) {
@@ -1080,7 +1082,7 @@ var Application = L.Class.extend({
 	var elem = document.getElementById('share');
 	var gpxUrl = URL.createObjectURL(blob);
 	elem.setAttribute('href', gpxUrl);
-	elem.setAttribute('download', new Date().toISOString() + '.gpx');
+	elem.setAttribute('download', blob.name);
 	return true;
     },
 
