@@ -1054,7 +1054,7 @@ var Application = L.Class.extend({
 
 	data.push('</trk></gpx>\n');
 	var blob = new Blob(data, { 'type' : 'application/gpx+xml' });
-	blob.name = dateString + '.gpx';
+	blob.name = dateString.replace(':', '-').replace(':', '-');
 	return blob;
     },
 
@@ -1065,6 +1065,7 @@ var Application = L.Class.extend({
 					     type: 'application/gpx+xml',
 					     number: 1,
 					     blobs: [blob],
+					     names: [blob.name],
 					     filepaths: [null]
 					 } });
 	activity.onerror = function () {

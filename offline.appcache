@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v0.8.dev.6
+# v0.8.dev.9
 /index.html
 /js/app.js
 /js/gpx.js
@@ -66,6 +66,7 @@ CACHE MANIFEST
 /shared/style/input_areas/images/search_dark.svg
 /shared/style/input_areas/images/search.svg
 /shared/style/lists.css
+/shared/style/status.css
 /shared/style/switches.css
 /shared/style/switches/images/switch/background@1.5x.png
 /shared/style/switches/images/switch/background_off@1.5x.png
