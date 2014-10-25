@@ -398,10 +398,10 @@ var mapInfo = [
       baseUrl : 'http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
       subdomains : '1',
       attribution : 'Map data and imagery &copy; <a href="http://maps.google.com/">Google</a>' },
-    { name : 'Bing OS (UK)',
+    { name : 'Bing Ordnance Survey (UK)',
       baseUrl : 'http://ecn.t{s}.tiles.virtualearth.net/tiles/r{q}.png?g=677&productSet=mmOS',
       subdomains : '01234567',
-      attribution : '&copy; <a href="http://bing.com/maps/">Bing</a>' }
+      attribution : '&copy; <a href="http://bing.com/maps/">Microsoft Corporation</a> Image courtesy of Ordnance Survey' }
 ];
 
 var TileCacheDb = L.Class.extend({
