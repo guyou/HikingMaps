@@ -39,4 +39,8 @@ navigator.mozSetMessageHandler('activity', function(a) {
     getFiles(document.getElementById('files-download'), 'Download',
 	     function (blob) { a.postResult({ type: "application/gpx+xml",
 					      blob: blob }); });
+
+    getFiles(document.getElementById('files-download'), 'downloads',
+	     function (blob) { a.postResult({ type: "application/gpx+xml",
+					      blob: blob }); });
 });
