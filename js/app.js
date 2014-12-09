@@ -252,6 +252,7 @@ var PathTracker = L.Class.extend ({
 	this._started = false;
 	this._prevTimestamp = null;
 	this._moveTimestamp = null;
+	this._prevPos = null;
 	this._prevAlt = [-Infinity, Infinity];
     },
 
@@ -349,7 +350,7 @@ var PathTracker = L.Class.extend ({
 		}
 	    }
 
-	    if (!this._started) {
+	    if (! this._started) {
 		this._started = true;
 		startPos = this._prevPos || this._curPos;
 	    }
