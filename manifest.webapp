@@ -66,6 +66,10 @@
 	    "description": "Necessary to load/save tracks from SD card",
 	    "access": "readwrite"
 	},
+	"storage":
+	{
+	    "description": "Storage without size limitations"
+	},
 	"systemXHR":
 	{
 	    "description": "Necessary to load map data"
