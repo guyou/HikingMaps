@@ -331,7 +331,7 @@ var PathTracker = L.Class.extend ({
 		this._length += this._prevPos.distanceTo(this._curPos);
 
 		if ((this._moveTimestamp !== null) &&
-		    (ts - this._moveTimestamp < 2.5)) {
+		    (ts - this._moveTimestamp < 5.5)) {
 		    // we had a very short wait - count it as moving instead
 		    this._moveDuration += ts - this._moveTimestamp;
 		    this._waitDuration -= this._prevTimestamp - this._moveTimestamp;
@@ -358,11 +358,11 @@ var PathTracker = L.Class.extend ({
 	    this._prevAlt = curAlt;
 	    this._moveTimestamp = ts;
 	} else {
-	    if (this._prevTimestamp !== null) {
+	    if (this._started) {
 		this._waitDuration += ts - this._prevTimestamp;
 	    }
 
-	    if (! this._started) {
+	    if (! this._started && (coords.accuracy < 30)) {
 		this._prevPos = this._curPos;
 		this._prevAlt = curAlt;
 	    }
