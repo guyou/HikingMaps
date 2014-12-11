@@ -1104,3 +1104,17 @@ var Application = L.Class.extend({
 });
 
 var app = new Application();
+
+if (navigator.mozSetMessageHandler !== undefined) {
+    navigator.mozSetMessageHandler('activity', function(activityRequest) {
+	var option = activityRequest.source;
+	if (option.name === 'open') {
+	    var blob = option.data.blob;
+
+	    var trackFileName = document.getElementById('trackfilename');
+	    var name = blob.name.split('/').pop().replace('.gpx', '');
+	    trackFileName.setAttribute('value', name);
+	    app.loadRoute(blob);
+	}
+    });
+}

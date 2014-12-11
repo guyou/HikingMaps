@@ -1,5 +1,5 @@
 {
-    "version": "0.8.dev.2",
+    "version": "0.8.dev.3",
     "name": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
     "launch_path": "/index.html",
@@ -12,6 +12,13 @@
             "href": "pick.html",
             "disposition": "inline",
 	    "returnValue": true
+        },
+        "open": {
+            "filters": {
+                "type": ["application/gpx+xml"]
+            },
+            "href": "index.html",
+            "disposition": "window"
         },
         "share": {
             "filters": {
