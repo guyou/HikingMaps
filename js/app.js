@@ -327,6 +327,20 @@ var PathTracker = L.Class.extend ({
 	    this._maxElev = Math.max(this._maxElev,
 				     (altitude !== undefined) ? altitude : -Infinity);
 
+	    if (! this._started) {
+		this._started = true;
+
+		// check if prev position looks reasonable
+		if ((this._prevPos !== null) && coords.speed) {
+		    if (2 * coords.speed * (ts - this._prevTimestamp) <
+			this._prevPos.distanceTo(this._curPos)) {
+			this._prevPos = null; // prev position was invalid
+		    }
+		}
+
+		startPos = this._prevPos || this._curPos;
+	    }
+
 	    if (this._prevPos !== null) {
 		this._length += this._prevPos.distanceTo(this._curPos);
 
@@ -350,19 +364,13 @@ var PathTracker = L.Class.extend ({
 		}
 	    }
 
-	    if (! this._started) {
-		this._started = true;
-		startPos = this._prevPos || this._curPos;
-	    }
 	    this._prevPos = this._curPos;
 	    this._prevAlt = curAlt;
 	    this._moveTimestamp = ts;
 	} else {
 	    if (this._started) {
 		this._waitDuration += ts - this._prevTimestamp;
-	    }
-
-	    if (! this._started && (coords.accuracy < 30)) {
+	    } else {
 		this._prevPos = this._curPos;
 		this._prevAlt = curAlt;
 	    }
