@@ -332,7 +332,7 @@ var PathTracker = L.Class.extend ({
 
 		// check if prev position looks reasonable
 		if ((this._prevPos !== null) && coords.speed) {
-		    if (2 * coords.speed * (ts - this._prevTimestamp) <
+		    if (0.0015 * (coords.speed + 1) * (ts - this._prevTimestamp) <
 			this._prevPos.distanceTo(this._curPos)) {
 			this._prevPos = null; // prev position was invalid
 		    }
