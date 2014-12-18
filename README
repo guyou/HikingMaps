@@ -9,9 +9,9 @@ Map application for outdoor enthusiasts that lets you:
 
  * Import routes from GPX files
 
-Supports several map layers (OpenStreetMap, Thunderforest Outdoors,
-MapQuest, OVI and Google) with offline storage of map data and lets
-you switch between metric and imperial units.
+Supports several map layers (MapQuest, Thunderforest Outdoors) with
+offline storage of map data and lets you switch between metric and
+imperial units.
 
 
 Deutsch
@@ -25,10 +25,9 @@ Kartenanwendung für Outdoor-Enthusiasten mit folgenden Features:
 
  * Importien von Routen im GPX Format
 
-Unterstützt mehrere Karten-Layer (OpenStreetMap, Thunderforest
-Outdoors, MapQuest, OVI and Google) mit Offline-Speicherung der
-Kartendaten und erlaubt die Anzeige in metrischen oder imperialen
-Einheiten.
+Unterstützt mehrere Karten-Layer (MapQuest, Thunderforest Outdoors)
+mit Offline-Speicherung der Kartendaten und erlaubt die Anzeige in
+metrischen oder imperialen Einheiten.
 
 
 Portugués
@@ -42,7 +41,6 @@ Esta aplicacao é vocacionada a entusiastas dos desporto ao ar livre.
 
  * Importe os seus percursos num formato GPX
 
-Sao várias os tipos de mapas suportados (OpenStreetMap, Thunderforest
-Outdoors, MapQuest, OVI e Google) possibilitando o suporte offline
-dos dados do mapa. Poderá configurar as unidade metrica para o sistema
-métrico ou imperial.
+Sao várias os tipos de mapas suportados (MapQuest, Thunderforest
+Outdoors) possibilitando o suporte offline dos dados do mapa. Poderá
+configurar as unidade metrica para o sistema métrico ou imperial.
