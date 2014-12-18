@@ -392,9 +392,9 @@ var mapInfo = [
       subdomains : 'abc',
       attribution : 'Map &copy; <a href="http://www.thunderforest.com">Thunderforest</a>, Data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' },
     { name : 'MapQuest',
-      baseUrl : 'http://otile{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png',
+      baseUrl : 'http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png',
       subdomains : '1234',
-      attribution : 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">' },
+      attribution : 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>. Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">' },
     { name : 'OVI Terrain',
       baseUrl : 'http://maptile.maps.svc.ovi.com/maptiler/maptile/newest/terrain.day/{z}/{x}/{y}/256/png8',
       subdomains : '1',
@@ -463,7 +463,7 @@ var Application = L.Class.extend({
     initialize: function () {
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
-	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
+	this._activeLayer = (window.localStorage.getItem('active-layer') || '2');
 	this._mapLat = window.localStorage.getItem('map-lat');
 	this._mapLng = window.localStorage.getItem('map-lng');
 	this._mapZoom = window.localStorage.getItem('map-zoom');
