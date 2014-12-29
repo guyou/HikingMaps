@@ -133,10 +133,13 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 	quadKey: false
     },
 
-    initialize: function (url, db, options) {
+    initialize: function (url, name, db, options) {
 	this._db = db;
+	this._name = name;
 	this._offline = false;
-	FunctionalTileLayer.prototype.initialize.call(this, url, this._getTileAsync, options);
+	FunctionalTileLayer.prototype.initialize.call(this, url,
+						      this._getTileAsync,
+						      options);
     },
 
     setOffline: function (val) {
@@ -171,8 +174,13 @@ var CachedTileLayer = FunctionalTileLayer.extend({
         return quadKey.join('');
     },
 
+    _getDbKey: function (coords) {
+	return this._name + ' ' + this._getZoomForUrl() + ',' + coords.x + ',' + coords.y;
+    },
+
     _getTileAsync : function (coords) {
 	var url = this.getTileUrl(coords);
+	var dbKey = this._getDbKey(coords);
 
 	var deferred = {
 	    _fn: null,
@@ -195,13 +203,13 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 	};
 
 	if (this._offline) {
-	    this._db.get(url, function (arg) {
+	    this._db.get(dbKey, function (arg) {
 		deferred.resolve(arg);
 	    });
 	} else {
 	    var self = this;
-	    this._db.getETag(url, function (arg) {
-		var xhr = new XMLHttpRequest({mozAnon: true, mozSystem: true});
+	    this._db.getETag(dbKey, function (arg) {
+		var xhr = new XMLHttpRequest({mozSystem: true});
 		xhr.open('GET', url, true);
 		if (arg) {
 		    xhr.setRequestHeader('If-None-Match', arg);
@@ -212,10 +220,10 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 			var blob = xhr.response;
 			var etag = xhr.getResponseHeader('ETag');
 
-			self._db.put(url, blob, etag);
+			self._db.put(dbKey, blob, etag);
 			deferred.resolve(blob);
 		    } else {
-			self._db.get(url, function (arg) {
+			self._db.get(dbKey, function (arg) {
 			    deferred.resolve(arg);
 			});
 		    }
@@ -382,7 +390,7 @@ var PathTracker = L.Class.extend ({
 });
 
 
-var mapInfo = [
+var defaultMapInfo = [
     { name : 'MapQuest',
       baseUrl : 'http://otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png',
       subdomains : '1234',
@@ -443,7 +451,12 @@ var Application = L.Class.extend({
     initialize: function () {
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
+
+	var mapInfo = window.localStorage.getItem('mapInfo');
+	this._mapInfo = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
+
 	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
+
 	this._mapLat = window.localStorage.getItem('map-lat');
 	this._mapLng = window.localStorage.getItem('map-lng');
 	this._mapZoom = window.localStorage.getItem('map-zoom');
@@ -554,12 +567,15 @@ var Application = L.Class.extend({
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
 	document.getElementById('trackdelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
 	document.getElementById('share').addEventListener('click', L.bind(this.doShareTrack, this), false);
-	document.getElementById('menubutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
+	document.getElementById('settingsbutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
 	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
 	document.getElementById('clear-cache').addEventListener('click', function () {
 	    cacheDB.clear();
 	}, false);
+
+	document.getElementById('layersbutton').addEventListener('click', L.bind(this.doOpenLayers, this), false);
+	document.getElementById('layersokbutton').addEventListener('click', L.bind(this.doEndLayers, this), false);
 
 	var trackFileInput = document.getElementById('trackfile');
 	var trackFilePick = document.getElementById('trackfilepick');
@@ -597,9 +613,9 @@ var Application = L.Class.extend({
 	}, false);
 
 	var mapLayerSelect = document.getElementById('maplayerselect');
-	for (var mapIdx in mapInfo) {
+	for (var mapIdx in this._mapInfo) {
 	    mapLayerSelect.options[mapLayerSelect.options.length] =
-		new Option(mapInfo[mapIdx].name, mapIdx);
+		new Option(this._mapInfo[mapIdx].name, mapIdx);
 	}
 
 	if (this._activeLayer < mapLayerSelect.options.length) {
@@ -609,7 +625,7 @@ var Application = L.Class.extend({
 	}
 
 	this._mapLayer = this._createMapLayer(cacheDB,
-					      mapInfo[this._activeLayer]);
+					      this._mapInfo[this._activeLayer]);
 	this._mapLayer.setOffline(this._offline);
 	this._mapLayer.addTo(this._map);
 
@@ -619,7 +635,7 @@ var Application = L.Class.extend({
 
 	    self._map.removeLayer(self._mapLayer);
 	    self._mapLayer = self._createMapLayer(cacheDB,
-						  mapInfo[self._activeLayer]);
+						  self._mapInfo[self._activeLayer]);
 	    self._mapLayer.setOffline(self._offline);
 	    self._mapLayer.addTo(self._map);
 	});
@@ -686,7 +702,7 @@ var Application = L.Class.extend({
     },
 
     _createMapLayer: function (db, info) {
-	return new CachedTileLayer(info.baseUrl, db,
+	return new CachedTileLayer(info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
@@ -978,6 +994,29 @@ var Application = L.Class.extend({
 	}
 	document.getElementById('track-length').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '');
+    },
+
+    doOpenLayers: function () {
+	delete document.getElementById('layers-view').dataset.viewport;
+
+	var layerList = document.getElementById('layers-list');
+	if (! layerList.hasChildNodes()) {
+	    for (var mapIdx in this._mapInfo) {
+		var li = document.createElement('li');
+		var button = document.createElement('button');
+		button.textContent = this._mapInfo[mapIdx].name;
+		button.addEventListener('click', function () {
+		    // TODO
+		}, false);
+
+		li.appendChild(button);
+		layerList.appendChild(li);
+	    }
+	}
+    },
+
+    doEndLayers: function () {
+	document.getElementById('layers-view').dataset.viewport = 'right';
     },
 
     _updateStatistics: function () {
