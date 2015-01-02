@@ -1011,8 +1011,11 @@ var Application = L.Class.extend({
 	document.getElementById('layer-attribution').value = this._mapInfo[idx].attribution;
 	document.getElementById('layer-delete').classList.remove('invisible');
 
-	document.getElementById('layer-delete').setAttribute('disabled',
-							     (this._mapInfo.length < 2) ? 'true' : 'false');
+	if (this._mapInfo.length < 2) {
+	    document.getElementById('layer-delete').setAttribute('disabled', 'true');
+	} else {
+	    document.getElementById('layer-delete').removeAttribute('disabled');
+	}
     },
 
     doEndLayer: function (save) {
@@ -1046,6 +1049,8 @@ var Application = L.Class.extend({
 	    window.localStorage.setItem('active-layer',
 					this._activeLayer.toString());
 
+	    this._setActiveLayer();
+	} else if (this._activeLayer == idx) {
 	    this._setActiveLayer();
 	}
 
