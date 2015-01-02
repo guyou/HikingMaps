@@ -52,6 +52,10 @@ body {
     transform: translateX(100%);
 }
 
+.view[data-viewport="left"] {
+    transform: translateX(-100%);
+}
+
 .view[data-viewport="side"] {
     transform: translateX(80%);
 }
@@ -145,6 +149,11 @@ body[role="application"] section[role="region"] > header button {
 
 #layers-view {
     z-index: 30;
+    bottom: 0;
+}
+
+#layeredit-view {
+    z-index: 40;
     bottom: 0;
 }
 

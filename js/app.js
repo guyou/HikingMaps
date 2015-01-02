@@ -465,6 +465,7 @@ var Application = L.Class.extend({
 	    (navigator.getDeviceStorage !== undefined);
 
 	this._db = null;
+	this._cacheDB = null;
 	this._map = null;
 	this._mapLayer = null;
 
@@ -556,8 +557,7 @@ var Application = L.Class.extend({
 	    document.getElementById('locate').dataset.state = '';
 	});
 
-	var cacheDB = new TileCacheDb(this._db);
-
+	this._cacheDB = new TileCacheDb(this._db);
 	this._createTrack();
 
 	document.addEventListener('visibilitychange', L.bind(this.doDeferredUpdate, this), false);
@@ -571,11 +571,15 @@ var Application = L.Class.extend({
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
 	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
 	document.getElementById('clear-cache').addEventListener('click', function () {
-	    cacheDB.clear();
+	    self._cacheDB.clear();
 	}, false);
 
 	document.getElementById('layersbutton').addEventListener('click', L.bind(this.doOpenLayers, this), false);
 	document.getElementById('layersokbutton').addEventListener('click', L.bind(this.doEndLayers, this), false);
+	document.getElementById('addlayerbutton').addEventListener('click', L.bind(this.doAddLayer, this), false);
+
+	document.getElementById('layerokbutton').addEventListener('click', L.bind(this.doEndLayer, this, true), false);
+	document.getElementById('layer-delete').addEventListener('click', L.bind(this.doDeleteLayer, this), false);
 
 	var trackFileInput = document.getElementById('trackfile');
 	var trackFilePick = document.getElementById('trackfilepick');
@@ -612,32 +616,14 @@ var Application = L.Class.extend({
 	    self.loadRoute(e.target.files[0]);
 	}, false);
 
-	var mapLayerSelect = document.getElementById('maplayerselect');
-	for (var mapIdx in this._mapInfo) {
-	    mapLayerSelect.options[mapLayerSelect.options.length] =
-		new Option(this._mapInfo[mapIdx].name, mapIdx);
-	}
-
-	if (this._activeLayer < mapLayerSelect.options.length) {
-	    mapLayerSelect.options[this._activeLayer].selected = 'true';
-	} else {
-	    this._activeLayer = 0;
-	}
-
-	this._mapLayer = this._createMapLayer(cacheDB,
-					      this._mapInfo[this._activeLayer]);
-	this._mapLayer.setOffline(this._offline);
-	this._mapLayer.addTo(this._map);
+	this._updateLayers();
+	this._setActiveLayer();
 
 	document.getElementById('maplayerselect').addEventListener('change', function (e) {
 	    self._activeLayer = mapLayerSelect.value;
 	    window.localStorage.setItem('active-layer', self._activeLayer.toString());
 
-	    self._map.removeLayer(self._mapLayer);
-	    self._mapLayer = self._createMapLayer(cacheDB,
-						  self._mapInfo[self._activeLayer]);
-	    self._mapLayer.setOffline(self._offline);
-	    self._mapLayer.addTo(self._map);
+	    self._setActiveLayer();
 	});
     },
 
@@ -998,25 +984,119 @@ var Application = L.Class.extend({
 
     doOpenLayers: function () {
 	delete document.getElementById('layers-view').dataset.viewport;
-
-	var layerList = document.getElementById('layers-list');
-	if (! layerList.hasChildNodes()) {
-	    for (var mapIdx in this._mapInfo) {
-		var li = document.createElement('li');
-		var button = document.createElement('button');
-		button.textContent = this._mapInfo[mapIdx].name;
-		button.addEventListener('click', function () {
-		    // TODO
-		}, false);
-
-		li.appendChild(button);
-		layerList.appendChild(li);
-	    }
-	}
     },
 
     doEndLayers: function () {
 	document.getElementById('layers-view').dataset.viewport = 'right';
+    },
+
+    doAddLayer: function () {
+	delete document.getElementById('layeredit-view').dataset.viewport;
+
+	document.getElementById('layer-id').value = this._mapInfo.length;
+	document.getElementById('layer-name').value = '';
+	document.getElementById('layer-url').value = '';
+	document.getElementById('layer-subdomains').value = '';
+	document.getElementById('layer-attribution').value = '';
+	document.getElementById('layer-delete').classList.add('invisible');
+    },
+
+    doEditLayer: function (idx) {
+	delete document.getElementById('layeredit-view').dataset.viewport;
+
+	document.getElementById('layer-id').value = idx;
+	document.getElementById('layer-name').value = this._mapInfo[idx].name;
+	document.getElementById('layer-url').value = this._mapInfo[idx].baseUrl;
+	document.getElementById('layer-subdomains').value = this._mapInfo[idx].subdomains;
+	document.getElementById('layer-attribution').value = this._mapInfo[idx].attribution;
+	document.getElementById('layer-delete').classList.remove('invisible');
+
+	document.getElementById('layer-delete').setAttribute('disabled',
+							     (this._mapInfo.length < 2) ? 'true' : 'false');
+    },
+
+    doEndLayer: function (save) {
+	document.getElementById('layeredit-view').dataset.viewport = 'left';
+
+	if (save) {
+	    var idx = document.getElementById('layer-id').value;
+	    var name = document.getElementById('layer-name').value;
+	    var url = document.getElementById('layer-url').value;
+	    var subdomains = document.getElementById('layer-subdomains').value;
+	    var attribution = document.getElementById('layer-attribution').value;
+
+	    this._mapInfo[idx] = { name : name, baseUrl : url,
+				   subdomains : subdomains,
+				   attribution : attribution };
+
+	    window.localStorage.setItem('mapInfo',
+					JSON.stringify(this._mapInfo));
+	    this._updateLayers();
+	}
+    },
+
+    doDeleteLayer: function () {
+	document.getElementById('layeredit-view').dataset.viewport = 'left';
+
+	var idx = document.getElementById('layer-id');
+	this._mapInfo.splice(idx, 1);
+
+	if (this._activeLayer > idx) {
+	    this._activeLayer = idx - 1;
+	    window.localStorage.setItem('active-layer',
+					this._activeLayer.toString());
+
+	    this._setActiveLayer();
+	}
+
+	window.localStorage.setItem('mapInfo',
+				    JSON.stringify(this._mapInfo));
+	this._updateLayers();
+    },
+
+    _setActiveLayer: function () {
+	if (this._mapLayer !== null) {
+	    this._map.removeLayer(this._mapLayer);
+	}
+
+	this._mapLayer = this._createMapLayer(this._cacheDB,
+					      this._mapInfo[this._activeLayer]);
+	this._mapLayer.setOffline(this._offline);
+	this._mapLayer.addTo(this._map);
+    },
+
+    _updateLayers: function () {
+	var mapLayerSelect = document.getElementById('maplayerselect');
+	while (mapLayerSelect.lastChild) {
+	    mapLayerSelect.removeChild(mapLayerSelect.lastChild);
+	}
+
+	var layerList = document.getElementById('layers-list');
+	while (layerList.lastChild) {
+	    layerList.removeChild(layerList.lastChild);
+	}
+
+	for (var mapIdx in this._mapInfo) {
+	    mapLayerSelect.options[mapLayerSelect.options.length] =
+		new Option(this._mapInfo[mapIdx].name, mapIdx);
+
+	    var li = document.createElement('li');
+	    var button = document.createElement('button');
+	    button.textContent = this._mapInfo[mapIdx].name;
+
+	    button.addEventListener('click', L.bind(function (idx) {
+		this.doEditLayer(idx);
+	    }, this, mapIdx), false);
+
+	    li.appendChild(button);
+	    layerList.appendChild(li);
+	}
+
+	if (this._activeLayer < mapLayerSelect.options.length) {
+	    mapLayerSelect.options[this._activeLayer].selected = 'true';
+	} else {
+	    this._activeLayer = 0;
+	}
     },
 
     _updateStatistics: function () {
