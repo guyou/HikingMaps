@@ -1011,7 +1011,7 @@ var Application = L.Class.extend({
 	document.getElementById('layer-attribution').value = this._mapInfo[idx].attribution;
 	document.getElementById('layer-delete').classList.remove('invisible');
 
-	if (this._mapInfo.length < 2) {
+	if (this._activeLayer == idx) {
 	    document.getElementById('layer-delete').setAttribute('disabled', 'true');
 	} else {
 	    document.getElementById('layer-delete').removeAttribute('disabled');
@@ -1035,6 +1035,10 @@ var Application = L.Class.extend({
 	    window.localStorage.setItem('mapInfo',
 					JSON.stringify(this._mapInfo));
 	    this._updateLayers();
+
+	    if (this._activeLayer == idx) {
+		this._setActiveLayer();
+	    }
 	}
     },
 
@@ -1049,8 +1053,6 @@ var Application = L.Class.extend({
 	    window.localStorage.setItem('active-layer',
 					this._activeLayer.toString());
 
-	    this._setActiveLayer();
-	} else if (this._activeLayer == idx) {
 	    this._setActiveLayer();
 	}
 
