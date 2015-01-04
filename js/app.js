@@ -579,6 +579,7 @@ var Application = L.Class.extend({
 	document.getElementById('addlayerbutton').addEventListener('click', L.bind(this.doAddLayer, this), false);
 
 	document.getElementById('layerokbutton').addEventListener('click', L.bind(this.doEndLayer, this, true), false);
+	document.getElementById('layercancelbutton').addEventListener('click', L.bind(this.doEndLayer, this, false), false);
 	document.getElementById('layer-delete').addEventListener('click', L.bind(this.doDeleteLayer, this), false);
 
 	var trackFileInput = document.getElementById('trackfile');
@@ -1046,7 +1047,7 @@ var Application = L.Class.extend({
     doDeleteLayer: function () {
 	document.getElementById('layeredit-view').dataset.viewport = 'left';
 
-	var idx = document.getElementById('layer-id');
+	var idx = document.getElementById('layer-id').value;
 	this._mapInfo.splice(idx, 1);
 
 	if (this._activeLayer > idx) {

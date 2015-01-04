@@ -118,6 +118,9 @@ body[role="application"] section[role="region"] > header button {
 .bottom-btn:active {
     background-color: #008AAA !important;
 }
+.gaia-icon {
+    font-style: normal;
+}
 .gaia-icon[data-state="refreshing"]:before {
     content: "\e6e1";
 }
