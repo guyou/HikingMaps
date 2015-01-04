@@ -619,7 +619,8 @@ var Application = L.Class.extend({
 	this._updateLayers();
 	this._setActiveLayer();
 
-	document.getElementById('maplayerselect').addEventListener('change', function (e) {
+	var mapLayerSelect = document.getElementById('maplayerselect');
+	mapLayerSelect.addEventListener('change', function (e) {
 	    self._activeLayer = mapLayerSelect.value;
 	    window.localStorage.setItem('active-layer', self._activeLayer.toString());
 
