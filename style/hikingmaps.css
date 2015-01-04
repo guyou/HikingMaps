@@ -354,8 +354,8 @@ form[role="name"] button[type="button"]:active {
     color: #fff;
 }
 
-form[role="name"] p input + button[type="reset"],
-form[role="name"] p textarea + button[type="reset"] {
+form p input + button[type="reset"],
+form p textarea + button[type="reset"] {
     opacity: 1;
     pointer-events: all;
 }

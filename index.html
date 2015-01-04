@@ -166,7 +166,7 @@
 			<header><h2 data-l10n-id="settings-info">Information</h2></header>
 
 			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">v0.8.dev.13</span><br />
+			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">v0.8.dev.14</span><br />
 				 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 
@@ -219,25 +219,28 @@
 		</header>
 
 		<div>
-		  <form>
-			<input id="layer-id" type="hidden" />
-			<p>
-			  <input id="layer-name" type="text" placeholder="Name" required="true" />
-			  <button type="reset">Clear</button>
-			</p>
-			<p>
-			  <input id="layer-url" type="text" placeholder="URL" required="true" />
-			  <button type="reset">Clear</button>
-			</p>
-			<p>
-			  <input id="layer-subdomains" type="text" placeholder="Subdomains" required="true" />
-			  <button type="reset">Clear</button>
-			</p>
-			<p>
-			  <input id="layer-attribution" type="text" placeholder="Attribution" required="true" />
-			  <button type="reset">Clear</button>
-			</p>
-		  </form>
+		  <input id="layer-id" type="hidden" />
+
+		  <form role="layer"><p>
+			<input id="layer-name" type="text" placeholder="Name" required="true" />
+			<button type="reset">Clear</button>
+	      </p></form>
+
+		  <form role="layer"><p>
+			<input id="layer-url" type="text" placeholder="URL" required="true" />
+			<button type="reset">Clear</button>
+		  </p></form>
+
+		  <form role="layer"><p>
+			<input id="layer-subdomains" type="text" placeholder="Subdomains" required="true" />
+			<button type="reset">Clear</button>
+		  </p></form>
+
+		  <form role="layer"><p>
+			<input id="layer-attribution" type="text" placeholder="Attribution" required="true" />
+			<button type="reset">Clear</button>
+		  </p></form>
+
 		  <button id="layer-delete" class="danger invisible">Delete</button>
 		</div>
       </section>
