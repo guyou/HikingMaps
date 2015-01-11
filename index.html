@@ -141,7 +141,7 @@
 			<ul data-type="list">
 			  <li>
 				<aside class="pack-end">
-				  <a id="layersbutton" class="gaia-icon icon-options"></a>
+				  <p><a id="layersbutton" class="gaia-icon icon-options"></a></p>
 				</aside>
 				<p><select id="maplayerselect"></select></p>
 			  </li>
@@ -166,7 +166,7 @@
 			<header><h2 data-l10n-id="settings-info">Information</h2></header>
 
 			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">v0.8.dev.14</span><br />
+			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.8.dev.15</span><br />
 				 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 
@@ -219,29 +219,42 @@
 		</header>
 
 		<div>
-		  <input id="layer-id" type="hidden" />
+		  <section data-type="list">
+			<input id="layer-id" type="hidden" />
 
-		  <form role="layer"><p>
-			<input id="layer-name" type="text" placeholder="Name" required="true" />
-			<button type="reset">Clear</button>
-	      </p></form>
+			<form role="layer"><p>
+			  <input id="layer-name" type="text" placeholder="Name" required="true" />
+			  <button type="reset">Clear</button>
+			</p></form>
 
-		  <form role="layer"><p>
-			<input id="layer-url" type="text" placeholder="URL" required="true" />
-			<button type="reset">Clear</button>
-		  </p></form>
+			<form role="layer"><p>
+			  <input id="layer-url" type="text" placeholder="URL" required="true" />
+			  <button type="reset">Clear</button>
+			</p></form>
 
-		  <form role="layer"><p>
-			<input id="layer-subdomains" type="text" placeholder="Subdomains" required="true" />
-			<button type="reset">Clear</button>
-		  </p></form>
+			<p><em>{s}</em>, <em>{z}</em>, <em>{x}</em>
+and <em>{y}</em> are replaced by the subdomain, zoom level, x and y
+coordinates respectively.</p>
 
-		  <form role="layer"><p>
-			<input id="layer-attribution" type="text" placeholder="Attribution" required="true" />
-			<button type="reset">Clear</button>
-		  </p></form>
+			<form role="layer"><p>
+			  <input id="layer-subdomains" type="text" placeholder="Subdomains" required="true" />
+			  <button type="reset">Clear</button>
+			</p></form>
 
-		  <button id="layer-delete" class="danger invisible">Delete</button>
+			<form role="layer"><p>
+			  <input id="layer-attribution" type="text" placeholder="Attribution" required="true" />
+			  <button type="reset">Clear</button>
+			</p></form>
+
+			<p>See <a href="http://wiki.openstreetmap.org/wiki/Tile_servers"
+target="_blank">OpenStreetMap Wiki: Tile servers</a> for some
+examples.</p>
+
+			<p>Please make sure you are adhering to the licensing
+terms of the tile server used.</p>
+
+			<button id="layer-delete" class="danger invisible">Delete</button>
+		  </section>
 		</div>
       </section>
 	</section>

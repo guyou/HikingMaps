@@ -246,7 +246,8 @@ section[data-type="sidebar"] > nav > table > tbody > tr > td {
     margin-top: 1rem;
 }
 
-div[data-type="list"] p {
+div[data-type="list"] p,
+section[data-type="list"] p {
     border: none;
     display: block;
     padding-top: 0.8rem;
@@ -374,6 +375,10 @@ button, [role="button"], .button {
     cursor: default;
 }
 
+button.danger {
+    margin-top: 3rem;
+}
+
 p.plot {
     margin-top: 1rem;
     margin-left: 3rem;
@@ -387,4 +392,14 @@ canvas.plot {
     width: calc(100% - 3rem);
     height: calc(60vw - 2rem);
     background-color: rgb(224, 224, 224);
+}
+
+aside.arrow:before {
+    content: ">>"
+}
+
+aside.arrow {
+    padding-top: 1rem;
+    font-size: 1.6rem;
+    color: #858585;
 }

@@ -519,6 +519,12 @@ var Application = L.Class.extend({
     _initApp: function () {
 	var self = this;
 
+	for (var idx = 0; idx < document.forms.length; ++idx) {
+	    document.forms[idx].onsubmit = function () {
+		return false;
+	    }
+	}
+
 	this._map = L.map('map', { zoomControl: false });
 	if (this._mapLat && this._mapLng && this._mapZoom) {
 	    this._map.setView([Number(this._mapLat), Number(this._mapLng)],
@@ -1090,6 +1096,10 @@ var Application = L.Class.extend({
 		new Option(this._mapInfo[mapIdx].name, mapIdx);
 
 	    var li = document.createElement('li');
+	    var aside = document.createElement('aside');
+	    aside.setAttribute('class', 'pack-end arrow');
+	    li.appendChild(aside);
+
 	    var button = document.createElement('button');
 	    button.textContent = this._mapInfo[mapIdx].name;
 
