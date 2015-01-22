@@ -110,7 +110,7 @@
 			<header><h2 data-l10n-id="settings-route">Route</h2></header>
 
 			<form id="trackfilepickitem" role="name">
-			  <p class="invisible"><input type="file" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
+			  <p class="invisible"><input type="file" data-l10n-id="settings-gpx" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
 			  <button id="trackfilepick" data-l10n-id="pick" role="pick" type="button">Pick</button>
 			  <p>
 				<input id="trackfilename" data-l10n-id="settings-no-route" type="text" disabled="true" placeholder="None" value="" />
@@ -223,37 +223,32 @@
 			<input id="layer-id" type="hidden" />
 
 			<form role="layer"><p>
-			  <input id="layer-name" type="text" placeholder="Name" required="true" />
+			  <input id="layer-name" data-l10n-id="settings-layer-name" type="text" placeholder="Name" required="true" />
 			  <button type="reset">Clear</button>
 			</p></form>
 
 			<form role="layer"><p>
-			  <input id="layer-url" type="text" placeholder="URL" required="true" />
+			  <input id="layer-url" data-l10n-id="settings-layer-url" type="text" placeholder="URL" required="true" />
 			  <button type="reset">Clear</button>
 			</p></form>
 
-			<p><em>{s}</em>, <em>{z}</em>, <em>{x}</em>
-and <em>{y}</em> are replaced by the subdomain, zoom level, x and y
-coordinates respectively.</p>
+			<p><em>{s}</em>, <em>{z}</em>, <em>{x}</em>, <em>{y}</em> <span data-l10n-id="settings-layer-url-help-replaced-and">and</span> <em>{q}</em> <span data-l10n-id="settings-layer-url-help-replaced">are replaced by the subdomain, zoom level, x/y coordinates and quad-key respectively.</span></p>
 
 			<form role="layer"><p>
-			  <input id="layer-subdomains" type="text" placeholder="Subdomains" required="true" />
+			  <input id="layer-subdomains" data-l10n-id="settings-layer-subdomains" type="text" placeholder="Subdomains" required="true" />
 			  <button type="reset">Clear</button>
 			</p></form>
 
 			<form role="layer"><p>
-			  <input id="layer-attribution" type="text" placeholder="Attribution" required="true" />
+			  <input id="layer-attribution" data-l10n-id="settings-layer-attribution" type="text" placeholder="Attribution" required="true" />
 			  <button type="reset">Clear</button>
 			</p></form>
 
-			<p>See <a href="http://wiki.openstreetmap.org/wiki/Tile_servers"
-target="_blank">OpenStreetMap Wiki: Tile servers</a> for some
-examples.</p>
+			<p><span data-l10n-id="settings-layer-examples-see">See</span> <a href="http://wiki.openstreetmap.org/wiki/Tile_servers" target="_blank">OpenStreetMap Wiki: Tile servers</a> <span data-l10n-id="settings-layer-examples">for some examples.</span></p>
 
-			<p>Please make sure you are adhering to the licensing
-terms of the tile server used.</p>
+			<p data-l10n-id="settings-layer-licence">Please make sure you are adhering to the licensing terms of the tile server used.</p>
 
-			<button id="layer-delete" class="danger invisible">Delete</button>
+			<button id="layer-delete" data-l10n-id="settings-layer-delete" class="danger invisible">Delete</button>
 		  </section>
 		</div>
       </section>

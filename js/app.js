@@ -1032,7 +1032,8 @@ var Application = L.Class.extend({
 	if (save) {
 	    var idx = document.getElementById('layer-id').value;
 	    var name = document.getElementById('layer-name').value;
-	    var url = document.getElementById('layer-url').value;
+	    var url = document.getElementById('layer-url').value.replace(
+		new RegExp('[$][{]([a-z])[}]', 'g'), '{$1}');
 	    var subdomains = document.getElementById('layer-subdomains').value;
 	    var attribution = document.getElementById('layer-attribution').value;
 

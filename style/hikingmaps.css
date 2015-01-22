@@ -395,11 +395,14 @@ canvas.plot {
 }
 
 aside.arrow:before {
-    content: ">>"
+    content: ">"
 }
 
 aside.arrow {
     padding-top: 1rem;
-    font-size: 1.6rem;
+    font-size: 1.8em;
+    font-weight: bold;
     color: #858585;
+    position: absolute;
+    right: 0.5rem;
 }
