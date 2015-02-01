@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v0.8.dev.16
+# v0.8.dev.17
 /index.html
 /js/app.js
 /js/gpx.js
@@ -21,6 +21,7 @@ CACHE MANIFEST
 /pin-shadow.png
 /shared/js/l10n.js
 /shared/style/buttons.css
+/shared/style/confirm.css
 /shared/style/drawer.css
 /shared/style/drawer/images/icons/menu@1.5x.png
 /shared/style/drawer/images/icons/menu@2.25x.png

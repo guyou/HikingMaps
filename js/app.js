@@ -577,6 +577,13 @@ var Application = L.Class.extend({
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
 	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
 	document.getElementById('clear-cache').addEventListener('click', function () {
+	    document.getElementById('confirm-cache-clear').classList.remove('invisible');
+	}, false);
+	document.getElementById('confirm-cache-clear-cancel').addEventListener('click', function () {
+	    document.getElementById('confirm-cache-clear').classList.add('invisible');
+	}, false);
+	document.getElementById('confirm-cache-clear-do').addEventListener('click', function () {
+	    document.getElementById('confirm-cache-clear').classList.add('invisible');
 	    self._cacheDB.clear();
 	}, false);
 
@@ -586,7 +593,16 @@ var Application = L.Class.extend({
 
 	document.getElementById('layerokbutton').addEventListener('click', L.bind(this.doEndLayer, this, true), false);
 	document.getElementById('layercancelbutton').addEventListener('click', L.bind(this.doEndLayer, this, false), false);
-	document.getElementById('layer-delete').addEventListener('click', L.bind(this.doDeleteLayer, this), false);
+	document.getElementById('layer-delete').addEventListener('click', function () {
+	    document.getElementById('confirm-layer-delete').classList.remove('invisible');
+	}, false);
+	document.getElementById('confirm-layer-delete-cancel').addEventListener('click', function () {
+	    document.getElementById('confirm-layer-delete').classList.add('invisible');
+	}, false);
+	document.getElementById('confirm-layer-delete-do').addEventListener('click', function () {
+	    document.getElementById('confirm-layer-delete').classList.add('invisible');
+	    self.doDeleteLayer();
+	}, false);
 
 	var trackFileInput = document.getElementById('trackfile');
 	var trackFilePick = document.getElementById('trackfilepick');
@@ -1058,7 +1074,7 @@ var Application = L.Class.extend({
 	this._mapInfo.splice(idx, 1);
 
 	if (this._activeLayer > idx) {
-	    this._activeLayer = idx - 1;
+	    this._activeLayer -= 1;
 	    window.localStorage.setItem('active-layer',
 					this._activeLayer.toString());
 
