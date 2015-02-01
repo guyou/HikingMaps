@@ -1,10 +1,10 @@
-function getFiles (elem, path, selectedFn) {
-    var storage = navigator.getDeviceStorage('sdcard');
-    if (storage) {
-	var cursor = storage.enumerate(path);
+function getFiles (sdcards, idx, elem, path, selectedFn) {
+    if (idx < sdcards.length) {
+	var cursor = sdcards[idx].enumerate(path);
 
 	cursor.onerror = function() {
 	    console.error('Error in Device Storage API', cursor.error.name);
+	    getFiles(sdcards, idx + 1, elem, path, selectedFn);
 	};
 	cursor.onsuccess = function() {
 	    if (cursor.result) {
@@ -22,6 +22,8 @@ function getFiles (elem, path, selectedFn) {
 		    elem.appendChild(li);
 		}
 		cursor.continue();
+	    } else {
+		getFiles(sdcards, idx + 1, elem, path, selectedFn);
 	    }
 	};
     }
@@ -32,15 +34,16 @@ navigator.mozSetMessageHandler('activity', function(a) {
 	a.postError('closed');
     }, false);
 
-    getFiles(document.getElementById('files-tracks'), 'tracks',
-	     function (blob) { a.postResult({ type: "application/gpx+xml",
+    var sdcards = navigator.getDeviceStorages('sdcard');
+    getFiles(sdcards, 0, document.getElementById('files-tracks'), 'tracks',
+	     function (blob) { a.postResult({ type: 'application/gpx+xml',
 					      blob: blob }); });
 
-    getFiles(document.getElementById('files-download'), 'Download',
-	     function (blob) { a.postResult({ type: "application/gpx+xml",
+    getFiles(sdcards, 0, document.getElementById('files-download'), 'Download',
+	     function (blob) { a.postResult({ type: 'application/gpx+xml',
 					      blob: blob }); });
 
-    getFiles(document.getElementById('files-download'), 'downloads',
-	     function (blob) { a.postResult({ type: "application/gpx+xml",
+    getFiles(sdcards, 0, document.getElementById('files-download'), 'downloads',
+	     function (blob) { a.postResult({ type: 'application/gpx+xml',
 					      blob: blob }); });
 });
