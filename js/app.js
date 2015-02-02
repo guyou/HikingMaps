@@ -571,7 +571,22 @@ var Application = L.Class.extend({
 	document.getElementById('locate').addEventListener('click',
 							   L.bind(this.doLocate, this), false);
 	document.getElementById('recordplaypause').addEventListener('click', L.bind(this.doRecordPlayPause, this), false);
-	document.getElementById('trackdelete').addEventListener('click', L.bind(this.doDeleteTrack, this), false);
+
+	document.getElementById('trackdelete').addEventListener('click', function () {
+	    if (self._pathTracker.getMoveDuration()) {
+		document.getElementById('confirm-track-delete').classList.remove('invisible');
+	    } else {
+		self.doDeleteTrack();
+	    }
+	}, false);
+	document.getElementById('confirm-track-delete-cancel').addEventListener('click', function () {
+	    document.getElementById('confirm-track-delete').classList.add('invisible');
+	}, false);
+	document.getElementById('confirm-track-delete-do').addEventListener('click', function () {
+	    document.getElementById('confirm-track-delete').classList.add('invisible');
+	    self.doDeleteTrack();
+	}, false);
+
 	document.getElementById('share').addEventListener('click', L.bind(this.doShareTrack, this), false);
 	document.getElementById('settingsbutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
