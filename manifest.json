@@ -1,6 +1,6 @@
 {
     "manifest_version": 2,
-    "version": "0.8.dev.19",
+    "version": "0.8.dev.20",
     "name": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
     "app": {

@@ -453,6 +453,7 @@ var Application = L.Class.extend({
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
 	var mapInfo = window.localStorage.getItem('mapInfo');
+	this._newMapInfo = ! mapInfo;
 	this._mapInfo = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
 
 	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
@@ -564,6 +565,11 @@ var Application = L.Class.extend({
 	});
 
 	this._cacheDB = new TileCacheDb(this._db);
+	if (this._newMapInfo) {
+	    window.localStorage.setItem('mapInfo',
+					JSON.stringify(this._mapInfo));
+	    self._cacheDB.clear();
+	}
 	this._createTrack();
 
 	document.addEventListener('visibilitychange', L.bind(this.doDeferredUpdate, this), false);
