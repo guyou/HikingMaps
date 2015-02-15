@@ -1,6 +1,6 @@
 /*
  * HikingMaps, http://hikingmaps.cmeerw.org
- * Copyright (C) 2014, Christof Meerwald
+ * Copyright (C) 2014-2015, Christof Meerwald
  *
  * This program is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -133,8 +133,9 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 	quadKey: false
     },
 
-    initialize: function (url, name, db, options) {
+    initialize: function (id, url, name, db, options) {
 	this._db = db;
+	this._id = id;
 	this._name = name;
 	this._offline = false;
 	FunctionalTileLayer.prototype.initialize.call(this, url,
@@ -175,7 +176,7 @@ var CachedTileLayer = FunctionalTileLayer.extend({
     },
 
     _getDbKey: function (coords) {
-	return this._name + ' ' + this._getZoomForUrl() + ',' + coords.x + ',' + coords.y;
+	return [ this._id, this._getZoomForUrl(), coords.x, coords.y ];
     },
 
     _getTileAsync : function (coords) {
@@ -204,15 +205,15 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
 	if (this._offline) {
 	    this._db.get(dbKey, function (arg) {
-		deferred.resolve(arg);
+		deferred.resolve(arg && arg.blob);
 	    });
 	} else {
 	    var self = this;
-	    this._db.getETag(dbKey, function (arg) {
+	    this._db.get(dbKey, function (arg) {
 		var xhr = new XMLHttpRequest({mozSystem: true});
 		xhr.open('GET', url, true);
-		if (arg) {
-		    xhr.setRequestHeader('If-None-Match', arg);
+		if (arg && arg.etag) {
+		    xhr.setRequestHeader('If-None-Match', arg.etag);
 		}
 		xhr.responseType = 'blob';
 		xhr.addEventListener('load', function () {
@@ -222,9 +223,11 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 
 			self._db.put(dbKey, blob, etag);
 			deferred.resolve(blob);
+		    } else if (arg && arg.blob) {
+			deferred.resolve(arg.blob);
 		    } else {
 			self._db.get(dbKey, function (arg) {
-			    deferred.resolve(arg);
+			    deferred.resolve(arg && arg.blob);
 			});
 		    }
 		}, false);
@@ -407,42 +410,26 @@ var TileCacheDb = L.Class.extend({
     },
 
     clear: function () {
-	var transaction = this._db.transaction(['tilecache', 'tilemeta'],
-					       'readwrite');
-	transaction.objectStore('tilemeta').clear();
-	transaction.objectStore('tilecache').clear();
+	var transaction = this._db.transaction(['tiles'], 'readwrite');
+	transaction.objectStore('tiles').clear();
     },
 
-    put: function (key, value, etag) {
-	var transaction = this._db.transaction(['tilecache', 'tilemeta'],
-					       'readwrite');
-	var tileRequest = transaction.objectStore('tilecache').put(value, key);
-	if (etag) {
-	    var metaRequest = transaction.objectStore('tilemeta').put(etag, key);
-	}
+    put: function (key, blob, etag) {
+	var obj = { layer : key[0], z : key[1], x : key[2], y : key[3],
+		    blob : blob };
+	etag && (obj.etag = etag);
+	var transaction = this._db.transaction(['tiles'], 'readwrite');
+	transaction.objectStore('tiles').put(obj);
     },
 
     get: function (key, fn) {
-	var objStore = 'tilecache';
-	var transaction = this._db.transaction([objStore]);
-	var request = transaction.objectStore(objStore).get(key);
+	var transaction = this._db.transaction(['tiles']);
+	var request = transaction.objectStore('tiles').get(key);
 	request.onsuccess = function (e) {
-            var blob = e.target.result;
-	    fn(blob);
+            var obj = e.target.result;
+	    fn(obj);
 	};
 	request.onerror = function (e) { };
-    },
-
-    getETag: function (key, fn) {
-	var transaction = this._db.transaction(['tilemeta']);
-	var request = transaction.objectStore('tilemeta').get(key);
-	request.onsuccess = function (e) {
-            var etag = e.target.result;
-	    fn(etag);
-	};
-	request.onerror = function (e) {
-	    fn(null);
-	};
     },
 });
 
@@ -453,10 +440,9 @@ var Application = L.Class.extend({
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
 	var mapInfo = window.localStorage.getItem('mapInfo');
-	this._newMapInfo = ! mapInfo;
-	this._mapInfo = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
+	var mapInfoArray = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
 
-	this._activeLayer = (window.localStorage.getItem('active-layer') || '0');
+	this._activeLayer = Number(window.localStorage.getItem('active-layer') || '0');
 
 	this._mapLat = window.localStorage.getItem('map-lat');
 	this._mapLng = window.localStorage.getItem('map-lng');
@@ -482,38 +468,72 @@ var Application = L.Class.extend({
 
 	this._deferredUpdate = false;
 
-	this._initDb();
+	this._initDb(mapInfoArray);
     },
 
-    _initDb: function () {
-	var request = window.indexedDB.open('HikingMaps', 1);
+    _initDb: function (mapInfoArray) {
+	var request = window.indexedDB.open('HikingMaps', 2);
 	var self = this;
-	request.onerror = function(event)
-	{
+
+	request.onerror = function(event) {
 	    self._initApp();
 	};
-	request.onsuccess = function(event)
-	{
+	request.onsuccess = function(event) {
 	    self._db = request.result;
-	    self._initApp();
+
+	    var transaction = self._db.transaction(['layers']);
+	    var layersReq = transaction.objectStore('layers').openCursor();
+
+	    self._mapInfo = { };
+	    self._maxMapId = -1;
+	    layersReq.onsuccess = function (e) {
+		var cursor = e.target.result;
+		if (cursor) {
+		    self._mapInfo[cursor.value.id] = cursor.value;
+		    if (cursor.value.id > self._maxMapId) {
+			self._maxMapId = cursor.value.id;
+		    }
+		    cursor.continue();
+		} else {
+		    self._initApp();
+		}
+	    };
+	    layersReq.onerror = function (e) { };
 	};
-	request.onupgradeneeded = function(event)
-	{
+	request.onupgradeneeded = function(event) {
 	    var db = request.result;
 	    var ver = db.version || 0; // version is empty string for a new DB
-	    if (!db.objectStoreNames.contains('tilecache'))
+	    if (db.objectStoreNames.contains('tilecache'))
 	    {
-		var tilecacheStore = db.createObjectStore('tilecache');
+		db.deleteObjectStore('tilecache');
 	    }
-	    if (!db.objectStoreNames.contains('tilemeta'))
+	    if (db.objectStoreNames.contains('tilemeta'))
 	    {
-		var tilemetaStore = db.createObjectStore('tilemeta');
+		db.deleteObjectStore('tilemeta');
 	    }
-	    db.onversionchange = function(event)
+	    if (!db.objectStoreNames.contains('layers'))
 	    {
-		db.close();
-		self._initDb();
-	    };
+		var layersStore =
+		    db.createObjectStore('layers', { keyPath : 'id' });
+		for (var idx in mapInfoArray) {
+		    mapInfoArray[idx].id = Number(idx);
+		    layersStore.put(mapInfoArray[idx]);
+		}
+
+		window.localStorage.setItem('active-layer', self._activeLayer);
+		window.localStorage.removeItem('mapInfo');
+	    }
+	    if (!db.objectStoreNames.contains('tiles'))
+	    {
+		var tilesStore =
+		    db.createObjectStore('tiles', { keyPath : [ 'layer', 'z', 'x', 'y' ] });
+		tilesStore.createIndex('layer', 'layer', { unique: false });
+	    }
+	    if (!db.objectStoreNames.contains('track'))
+	    {
+		var trackStore =
+		    db.createObjectStore('track', { autoIncrement : true });
+	    }
 	};
     },
 
@@ -565,11 +585,6 @@ var Application = L.Class.extend({
 	});
 
 	this._cacheDB = new TileCacheDb(this._db);
-	if (this._newMapInfo) {
-	    window.localStorage.setItem('mapInfo',
-					JSON.stringify(this._mapInfo));
-	    self._cacheDB.clear();
-	}
 	this._createTrack();
 
 	document.addEventListener('visibilitychange', L.bind(this.doDeferredUpdate, this), false);
@@ -666,7 +681,7 @@ var Application = L.Class.extend({
 	var mapLayerSelect = document.getElementById('maplayerselect');
 	mapLayerSelect.addEventListener('change', function (e) {
 	    self._activeLayer = mapLayerSelect.value;
-	    window.localStorage.setItem('active-layer', self._activeLayer.toString());
+	    window.localStorage.setItem('active-layer', self._activeLayer);
 
 	    self._setActiveLayer();
 	});
@@ -733,7 +748,7 @@ var Application = L.Class.extend({
     },
 
     _createMapLayer: function (db, info) {
-	return new CachedTileLayer(info.baseUrl, info.name, db,
+	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
@@ -1038,7 +1053,7 @@ var Application = L.Class.extend({
     doAddLayer: function () {
 	delete document.getElementById('layeredit-view').dataset.viewport;
 
-	document.getElementById('layer-id').value = this._mapInfo.length;
+	document.getElementById('layer-id').value = ++this._maxMapId;
 	document.getElementById('layer-name').value = '';
 	document.getElementById('layer-url').value = '';
 	document.getElementById('layer-subdomains').value = '';
@@ -1067,44 +1082,40 @@ var Application = L.Class.extend({
 	document.getElementById('layeredit-view').dataset.viewport = 'left';
 
 	if (save) {
-	    var idx = document.getElementById('layer-id').value;
+	    var idx = Number(document.getElementById('layer-id').value);
 	    var name = document.getElementById('layer-name').value;
 	    var url = document.getElementById('layer-url').value.replace(
 		new RegExp('[$][{]([a-z])[}]', 'g'), '{$1}');
 	    var subdomains = document.getElementById('layer-subdomains').value;
 	    var attribution = document.getElementById('layer-attribution').value;
 
-	    this._mapInfo[idx] = { name : name, baseUrl : url,
-				   subdomains : subdomains,
-				   attribution : attribution };
+	    var info = { id: idx, name : name, baseUrl : url,
+			 subdomains : subdomains,
+			 attribution : attribution };
 
-	    window.localStorage.setItem('mapInfo',
-					JSON.stringify(this._mapInfo));
+	    this._mapInfo[idx] = info;
 	    this._updateLayers();
 
 	    if (this._activeLayer == idx) {
 		this._setActiveLayer();
 	    }
+
+	    var transaction = this._db.transaction(['layers'], 'readwrite');
+	    transaction.objectStore('layers').put(info);
 	}
     },
 
     doDeleteLayer: function () {
 	document.getElementById('layeredit-view').dataset.viewport = 'left';
 
-	var idx = document.getElementById('layer-id').value;
-	this._mapInfo.splice(idx, 1);
+	var idx = Number(document.getElementById('layer-id').value);
+	delete this._mapInfo[idx];
 
-	if (this._activeLayer > idx) {
-	    this._activeLayer -= 1;
-	    window.localStorage.setItem('active-layer',
-					this._activeLayer.toString());
-
-	    this._setActiveLayer();
-	}
-
-	window.localStorage.setItem('mapInfo',
-				    JSON.stringify(this._mapInfo));
 	this._updateLayers();
+
+	var transaction = this._db.transaction(['layers', 'tiles'], 'readwrite');
+	transaction.objectStore('layers').delete(idx);
+	transaction.objectStore('tiles').delete(window.IDBKeyRange.bound([idx, -Infinity, -Infinity, -Infinity], [idx + 1, -Infinity, -Infinity, -Infinity], false, true));
     },
 
     _setActiveLayer: function () {
@@ -1130,8 +1141,11 @@ var Application = L.Class.extend({
 	}
 
 	for (var mapIdx in this._mapInfo) {
-	    mapLayerSelect.options[mapLayerSelect.options.length] =
-		new Option(this._mapInfo[mapIdx].name, mapIdx);
+	    var opt = new Option(this._mapInfo[mapIdx].name, mapIdx);
+	    if (mapIdx == this._activeLayer) {
+		opt.selected = 'true';
+	    }
+	    mapLayerSelect.options[mapLayerSelect.options.length] = opt;
 
 	    var li = document.createElement('li');
 	    var aside = document.createElement('aside');
@@ -1147,12 +1161,6 @@ var Application = L.Class.extend({
 
 	    li.appendChild(button);
 	    layerList.appendChild(li);
-	}
-
-	if (this._activeLayer < mapLayerSelect.options.length) {
-	    mapLayerSelect.options[this._activeLayer].selected = 'true';
-	} else {
-	    this._activeLayer = 0;
 	}
     },
 
