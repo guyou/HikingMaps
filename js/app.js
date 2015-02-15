@@ -67,9 +67,13 @@ MultiPolyline = L.Polyline.extend({
 	}
     },
 
-    addSegment: function () {
+    addSegment: function (latlngs) {
 	if (this._latlngs[this._latlngs.length - 1].length) {
 	    this._latlngs.push([]);
+	}
+
+	if (latlngs) {
+	    this._latlngs[this._latlngs.length - 1] = latlngs;
 	}
     },
 
@@ -439,9 +443,6 @@ var Application = L.Class.extend({
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
-	var mapInfo = window.localStorage.getItem('mapInfo');
-	var mapInfoArray = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
-
 	this._activeLayer = Number(window.localStorage.getItem('active-layer') || '0');
 
 	this._mapLat = window.localStorage.getItem('map-lat');
@@ -467,11 +468,14 @@ var Application = L.Class.extend({
 	this._pathTracker = null;
 
 	this._deferredUpdate = false;
+	this._unflushed = 0;
+	this._unflushedPos = 0;
+	this._unflushedUpdates = 0;
 
-	this._initDb(mapInfoArray);
+	this._initDb();
     },
 
-    _initDb: function (mapInfoArray) {
+    _initDb: function () {
 	var request = window.indexedDB.open('HikingMaps', 2);
 	var self = this;
 
@@ -513,8 +517,12 @@ var Application = L.Class.extend({
 	    }
 	    if (!db.objectStoreNames.contains('layers'))
 	    {
-		var layersStore =
-		    db.createObjectStore('layers', { keyPath : 'id' });
+		// migrate data from local storage to db
+		var mapInfo = window.localStorage.getItem('mapInfo');
+		var mapInfoArray = mapInfo ? JSON.parse(mapInfo) : defaultMapInfo;
+
+		var layersStore = db.createObjectStore('layers',
+						       { keyPath : 'id' });
 		for (var idx in mapInfoArray) {
 		    mapInfoArray[idx].id = Number(idx);
 		    layersStore.put(mapInfoArray[idx]);
@@ -533,6 +541,10 @@ var Application = L.Class.extend({
 	    {
 		var trackStore =
 		    db.createObjectStore('track', { autoIncrement : true });
+	    }
+	    if (!db.objectStoreNames.contains('state'))
+	    {
+		var stateStore = db.createObjectStore('state');
 	    }
 	};
     },
@@ -685,6 +697,8 @@ var Application = L.Class.extend({
 
 	    self._setActiveLayer();
 	});
+
+	this._restoreState();
     },
 
     formatDistance: function (l, def) {
@@ -786,16 +800,22 @@ var Application = L.Class.extend({
     _positionUpdated: function (e) {
 	var startPos = this._pathTracker.onPosition(e.timestamp, e.coords);
 
+	if (this._unflushed) {
+	    ++this._unflushedUpdates;
+	}
+
 	var pos = this._pathTracker.getPosition();
 	if (! this._pathTracker.isStationary()) {
 	    if (startPos !== null) {
 		this._trackLayer.addSegment();
+		this._unflushedPos = 0;
 		if (! startPos.equals(pos, 0)) {
 		    this._trackLayer.addLatLng(startPos);
 		}
 	    }
 
 	    this._trackLayer.addLatLng(pos);
+	    ++this._unflushed;
 
 	    if (! document.hidden) {
 		this._map.panTo(pos);
@@ -818,6 +838,83 @@ var Application = L.Class.extend({
 	    this._positionMarker.addTo(this._map);
 	} else {
 	    this._deferredUpdate = true;
+	}
+
+	if (this._unflushedUpdates > 30) {
+	    this._flushTrack(false);
+	}
+    },
+
+    _flushTrack : function (endSegment) {
+	var transaction = this._db.transaction(['state', 'track'], 'readwrite');
+	transaction.objectStore('state').put(this._pathTracker, 1);
+	var trackStore = transaction.objectStore('track');
+
+	var latlngs = this._trackLayer._latlngs[this._trackLayer._latlngs.length - 1].slice(this._unflushedPos);
+	for (var idx in latlngs) {
+	    trackStore.add(latlngs[idx]);
+	}
+	if (endSegment && this._unflushedPos) {
+	    trackStore.add(null);
+	}
+
+	this._unflushed = 0;
+	this._unflushedPos += latlngs.length;
+	this._unflushedUpdates = 0;
+    },
+
+    _restoreState : function () {
+	var self = this;
+	var transaction = this._db.transaction(['state', 'track']);
+	var stateReq = transaction.objectStore('state').get(1);
+	stateReq.onsuccess = function (e) {
+	    var obj = e.target.result;
+	    for (var idx in obj) {
+		self._pathTracker[idx] = obj[idx];
+	    }
+
+	    var trackReq = transaction.objectStore('track').openCursor();
+	    var segment = [];
+	    trackReq.onsuccess = function (e) {
+		var cursor = e.target.result;
+		if (cursor) {
+		    if (cursor.value) {
+			var latlng = L.latLng(cursor.value);
+			latlng.ts = cursor.value.ts;
+			segment.push(latlng);
+			self._trackLayer._bounds.extend(latlng);
+		    } else if (segment.length) {
+			self._trackLayer.addSegment(segment);
+			segment = [];
+		    }
+
+		    cursor.continue();
+		} else {
+		    if (segment.length) {
+			self._trackLayer.addSegment(segment);
+			segment = [];
+		    }
+
+		    var len = self._pathTracker.getLength();
+		    if (len) {
+			document.getElementById('track-length').textContent =
+			    self.formatDistance(len, '');
+
+			self._directionIcon.setDirection(self._pathTracker.getHeading());
+			self._positionMarker.setIcon(self._directionIcon);
+
+			var pos = self._pathTracker.getPosition();
+			if (pos) {
+			    self._map.panTo(pos);
+			    self._positionMarker.setLatLng(pos);
+			    self._positionMarker.addTo(self._map);
+			}
+
+			self._trackLayer.redraw();
+			document.getElementById('share').classList.remove('invisible');
+		    }
+		}
+	    };
 	}
     },
 
@@ -963,6 +1060,7 @@ var Application = L.Class.extend({
 
 	    navigator.geolocation.clearWatch(this._trackingHandler);
 	    this._trackingHandler = null;
+	    this._flushTrack(true);
 	} else {
 	    document.getElementById('locate').classList.add('invisible');
 	    document.getElementById('recordplaypause').classList.add('icon-media-pause');
@@ -1014,6 +1112,10 @@ var Application = L.Class.extend({
 	}
 
 	this._createTrack();
+
+	var transaction = this._db.transaction(['state', 'track'], 'readwrite');
+	transaction.objectStore('state').clear();
+	transaction.objectStore('track').clear();
     },
 
     doOpenSettings: function () {
