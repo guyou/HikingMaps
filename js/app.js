@@ -818,14 +818,13 @@ var Application = L.Class.extend({
 
 	    if (! document.hidden) {
 		this._map.panTo(pos);
+		this._trackLayer.redraw();
 
 		var len = this._pathTracker.getLength();
 		document.getElementById('track-length').textContent =
 		    this.formatDistance(len, '');
 
 		this._directionIcon.setDirection(this._pathTracker.getHeading());
-	    } else {
-		this._trackLayer.redraw();
 	    }
 	} else if (startPos !== null) {
 	    if (! document.hidden) {
