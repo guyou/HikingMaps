@@ -81,7 +81,6 @@ MultiPolyline = L.Polyline.extend({
 	latlng = L.latLng(latlng);
 	this._latlngs[this._latlngs.length - 1].push(latlng);
 	this._bounds.extend(latlng);
-	return this.redraw();
     },
 });
 
@@ -825,6 +824,8 @@ var Application = L.Class.extend({
 		    this.formatDistance(len, '');
 
 		this._directionIcon.setDirection(this._pathTracker.getHeading());
+	    } else {
+		this._trackLayer.redraw();
 	    }
 	} else if (startPos !== null) {
 	    if (! document.hidden) {
@@ -923,6 +924,7 @@ var Application = L.Class.extend({
 	    var pos = this._pathTracker.getPosition();
 	    var len = this._pathTracker.getLength();
 
+	    this._trackLayer.redraw();
 	    this._map.panTo(pos);
 
 	    document.getElementById('track-length').textContent =
