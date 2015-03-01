@@ -1,0 +1,26 @@
+{
+    "manifest_version": 2,
+    "version": "0.9.dev.8",
+    "name": "HikingMaps",
+    "description": "Map application for outdoor enthusiasts",
+    "app": {
+	"launch": {
+	    "local_path": "/index.html"
+	}
+    },
+    "icons":
+    {
+	"60": "/hikingmaps60.png",
+	"128": "/hikingmaps128.png",
+	"512": "/hikingmaps512.png"
+    },
+    "developer":
+    {
+	"name": "Christof Meerwald",
+	"url": "http://cmeerw.org"
+    },
+    "permissions":
+    [
+	"geolocation"
+    ]
+}

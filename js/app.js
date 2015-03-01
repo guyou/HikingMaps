@@ -17,6 +17,12 @@
  * <http://www.gnu.org/licenses/>.
  */
 
+var ScaleCRS = L.extend({}, L.CRS.EPSG3857, {
+    scale: function (zoom) {
+        return 192 * Math.pow(2, zoom);
+    }
+});
+
 var ArrowIcon = L.Icon.extend({
     options: {
 	iconSize: [16, 16],
@@ -559,7 +565,9 @@ var Application = L.Class.extend({
 	    }
 	}
 
-	this._map = L.map('map', { zoomControl: false });
+	var mapOptions = { crs : (this._highres ? ScaleCRS : L.CRS.EPSG3857),
+			   zoomControl: false };
+	this._map = L.map('map', mapOptions);
 	if (this._mapLat && this._mapLng && this._mapZoom) {
 	    this._map.setView([Number(this._mapLat), Number(this._mapLng)],
 			      Number(this._mapZoom));
@@ -769,10 +777,9 @@ var Application = L.Class.extend({
     _createMapLayer: function (db, info) {
 	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
-				     maxZoom: this._highres ? 17 : 18,
+				     maxZoom: 18,
+				     tileSize: this._highres ? 192 : 256,
 				     detectRetina: true,
-				     tileSize: this._highres ? 128 : 256,
-				     zoomOffset: this._highres ? 1 : 0,
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
 				     subdomains: info.subdomains });
     },
@@ -1239,9 +1246,13 @@ var Application = L.Class.extend({
     _doSetActiveLayer: function () {
 	if (this._setActiveLayer) {
 	    this._setActiveLayer = false;
+
 	    if (this._mapLayer !== null) {
 		this._map.removeLayer(this._mapLayer);
 	    }
+
+	    this._map.options.crs = (this._highres ? ScaleCRS : L.CRS.EPSG3857);
+	    this._map.invalidateSize({});
 
 	    this._mapLayer = this._createMapLayer(this._cacheDB,
 						  this._mapInfo[this._activeLayer]);
