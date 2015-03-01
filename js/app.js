@@ -440,6 +440,7 @@ var TileCacheDb = L.Class.extend({
 var Application = L.Class.extend({
     initialize: function () {
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
+	this._highres = (window.localStorage.getItem('highres') || 'false') == 'true';
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
 	this._activeLayer = Number(window.localStorage.getItem('active-layer') || '0');
@@ -455,6 +456,7 @@ var Application = L.Class.extend({
 	this._cacheDB = null;
 	this._map = null;
 	this._mapLayer = null;
+	this._setActiveLayer = true;
 
 	this._positionIcon = new L.Icon.Default();
 	this._directionIcon = new ArrowIcon();
@@ -687,14 +689,18 @@ var Application = L.Class.extend({
 	}, false);
 
 	this._updateLayers();
-	this._setActiveLayer();
+	this._doSetActiveLayer();
+
+	document.getElementById('settings-highres').addEventListener('change', function (e) {
+	    self._setActiveLayer = true;
+	});
 
 	var mapLayerSelect = document.getElementById('maplayerselect');
 	mapLayerSelect.addEventListener('change', function (e) {
 	    self._activeLayer = mapLayerSelect.value;
 	    window.localStorage.setItem('active-layer', self._activeLayer);
 
-	    self._setActiveLayer();
+	    self._setActiveLayer = true;
 	});
 
 	this._restoreState();
@@ -764,6 +770,9 @@ var Application = L.Class.extend({
 	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
+				     detectRetina: true,
+				     tileSize: this._highres ? 128 : 256,
+				     zoomOffset: this._highres ? 1 : 0,
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
 				     subdomains: info.subdomains });
     },
@@ -1121,6 +1130,7 @@ var Application = L.Class.extend({
 
     doOpenSettings: function () {
 	document.getElementById('settings-offline').checked = this._offline;
+	document.getElementById('settings-highres').checked = this._highres;
 	document.getElementById('settings-units').checked = this._metricUnits;
 
 	delete document.getElementById('settings-view').dataset.viewport;
@@ -1136,6 +1146,9 @@ var Application = L.Class.extend({
 	this._metricUnits = document.getElementById('settings-units').checked;
 	window.localStorage.setItem('metric', this._metricUnits.toString());
 
+	this._highres = document.getElementById('settings-highres').checked;
+	window.localStorage.setItem('highres', this._highres.toString());
+
 	if ((this._routeLayer !== null) &&
 	    (this._routeLayer.get_distance() > 0)) {
 	    document.getElementById('route-length').textContent =
@@ -1143,6 +1156,8 @@ var Application = L.Class.extend({
 	}
 	document.getElementById('track-length').textContent =
 	    this.formatDistance(this._pathTracker.getLength(), '');
+
+	this._doSetActiveLayer();
     },
 
     doOpenLayers: function () {
@@ -1200,7 +1215,7 @@ var Application = L.Class.extend({
 	    this._updateLayers();
 
 	    if (this._activeLayer == idx) {
-		this._setActiveLayer();
+		this._setActiveLayer = true;
 	    }
 
 	    var transaction = this._db.transaction(['layers'], 'readwrite');
@@ -1221,15 +1236,18 @@ var Application = L.Class.extend({
 	transaction.objectStore('tiles').delete(window.IDBKeyRange.bound([idx, -Infinity, -Infinity, -Infinity], [idx + 1, -Infinity, -Infinity, -Infinity], false, true));
     },
 
-    _setActiveLayer: function () {
-	if (this._mapLayer !== null) {
-	    this._map.removeLayer(this._mapLayer);
-	}
+    _doSetActiveLayer: function () {
+	if (this._setActiveLayer) {
+	    this._setActiveLayer = false;
+	    if (this._mapLayer !== null) {
+		this._map.removeLayer(this._mapLayer);
+	    }
 
-	this._mapLayer = this._createMapLayer(this._cacheDB,
-					      this._mapInfo[this._activeLayer]);
-	this._mapLayer.setOffline(this._offline);
-	this._mapLayer.addTo(this._map);
+	    this._mapLayer = this._createMapLayer(this._cacheDB,
+						  this._mapInfo[this._activeLayer]);
+	    this._mapLayer.setOffline(this._offline);
+	    this._mapLayer.addTo(this._map);
+	}
     },
 
     _updateLayers: function () {
