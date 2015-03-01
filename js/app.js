@@ -769,7 +769,7 @@ var Application = L.Class.extend({
     _createMapLayer: function (db, info) {
 	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
-				     maxZoom: 18,
+				     maxZoom: this._highres ? 17 : 18,
 				     detectRetina: true,
 				     tileSize: this._highres ? 128 : 256,
 				     zoomOffset: this._highres ? 1 : 0,
