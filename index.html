@@ -157,19 +157,24 @@
 				<p data-l10n-id="settings-data-offline">Offline</p>
 			  </li>
 
-			<ul data-type="list">
-			  <li>
-				<aside class="pack-end">
-				  <label class="pack-switch">
-					<input id="settings-highres" type="checkbox" checked="checked" />
-					<span></span>
-				  </label>
-				</aside>
-				<p data-l10n-id="settings-highres">High-Res Scaling</p>
-			  </li>
-			</ul>
 			  <li>
 				<button id="clear-cache" class="danger" data-l10n-id="settings-clear-cache">Clear Cache</button>
+			  </li>
+			</ul>
+		  </section>
+
+		  <section>
+			<header><h2 data-l10n-id="settings-map-scaling">Map Scaling</h2></header>
+
+			<ul data-type="list">
+			  <li>
+				<p><select id="settings-tilesize">
+					<option value="128">50 %</option>
+					<option value="171">67 %</option>
+					<option value="192">75 %</option>
+					<option value="230">90 %</option>
+					<option value="256">100 %</option>
+				</select></p>
 			  </li>
 			</ul>
 		  </section>
@@ -178,7 +183,7 @@
 			<header><h2 data-l10n-id="settings-info">Information</h2></header>
 
 			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.9.dev.8</span><br />
+			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">0.9.dev.9</span><br />
 				 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 

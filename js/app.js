@@ -17,9 +17,17 @@
  * <http://www.gnu.org/licenses/>.
  */
 
-var ScaleCRS = L.extend({}, L.CRS.EPSG3857, {
+var ScaledCRS_EPSG3857 = L.extend({}, L.CRS.EPSG3857, {
+    initialize: function () {
+	this._tileSize = 256;
+    },
+
+    setTileSize: function (tileSize) {
+	this._tileSize = tileSize;
+    },
+
     scale: function (zoom) {
-        return 192 * Math.pow(2, zoom);
+        return this._tileSize * Math.pow(2, zoom);
     }
 });
 
@@ -446,7 +454,7 @@ var TileCacheDb = L.Class.extend({
 var Application = L.Class.extend({
     initialize: function () {
 	this._metricUnits = (window.localStorage.getItem('metric') || 'true') == 'true';
-	this._highres = (window.localStorage.getItem('highres') || 'false') == 'true';
+	this._tileSize = Number(window.localStorage.getItem('tilesize') || '256');
 	this._offline = (window.localStorage.getItem('offline') || 'false') == 'true';
 
 	this._activeLayer = Number(window.localStorage.getItem('active-layer') || '0');
@@ -565,9 +573,11 @@ var Application = L.Class.extend({
 	    }
 	}
 
-	var mapOptions = { crs : (this._highres ? ScaleCRS : L.CRS.EPSG3857),
-			   zoomControl: false };
-	this._map = L.map('map', mapOptions);
+	this._map = L.map('map',
+			  { crs: ScaledCRS_EPSG3857, zoomControl: false });
+	this._map.options.crs.setTileSize(this._tileSize);
+	this._map.invalidateSize({});
+
 	if (this._mapLat && this._mapLng && this._mapZoom) {
 	    this._map.setView([Number(this._mapLat), Number(this._mapLng)],
 			      Number(this._mapZoom));
@@ -699,7 +709,8 @@ var Application = L.Class.extend({
 	this._updateLayers();
 	this._doSetActiveLayer();
 
-	document.getElementById('settings-highres').addEventListener('change', function (e) {
+	var tileSizeSelect = document.getElementById('settings-tilesize');
+	tileSizeSelect.addEventListener('change', function (e) {
 	    self._setActiveLayer = true;
 	});
 
@@ -778,7 +789,7 @@ var Application = L.Class.extend({
 	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
-				     tileSize: this._highres ? 192 : 256,
+				     tileSize: this._tileSize,
 				     detectRetina: true,
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
 				     subdomains: info.subdomains });
@@ -1137,8 +1148,12 @@ var Application = L.Class.extend({
 
     doOpenSettings: function () {
 	document.getElementById('settings-offline').checked = this._offline;
-	document.getElementById('settings-highres').checked = this._highres;
 	document.getElementById('settings-units').checked = this._metricUnits;
+
+	var tileSizeSelect = document.getElementById('settings-tilesize');
+	for (var idx in tileSizeSelect.options) {
+	    tileSizeSelect.options[idx].selected = (tileSizeSelect.options[idx].value == this._tileSize);
+	}
 
 	delete document.getElementById('settings-view').dataset.viewport;
     },
@@ -1153,8 +1168,8 @@ var Application = L.Class.extend({
 	this._metricUnits = document.getElementById('settings-units').checked;
 	window.localStorage.setItem('metric', this._metricUnits.toString());
 
-	this._highres = document.getElementById('settings-highres').checked;
-	window.localStorage.setItem('highres', this._highres.toString());
+	this._tileSize = Number(document.getElementById('settings-tilesize').value);
+	window.localStorage.setItem('tilesize', this._tileSize.toString());
 
 	if ((this._routeLayer !== null) &&
 	    (this._routeLayer.get_distance() > 0)) {
@@ -1251,8 +1266,11 @@ var Application = L.Class.extend({
 		this._map.removeLayer(this._mapLayer);
 	    }
 
-	    this._map.options.crs = (this._highres ? ScaleCRS : L.CRS.EPSG3857);
+	    var center = this._map.getCenter();
+	    var zoom = this._map.getZoom();
+	    this._map.options.crs.setTileSize(this._tileSize);
 	    this._map.invalidateSize({});
+	    this._map.setView(center, zoom);
 
 	    this._mapLayer = this._createMapLayer(this._cacheDB,
 						  this._mapInfo[this._activeLayer]);
