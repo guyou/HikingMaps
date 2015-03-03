@@ -725,6 +725,10 @@ var Application = L.Class.extend({
 	this._restoreState();
     },
 
+    _hideSplash: function () {
+	document.getElementById('splash').classList.add('invisible');
+    },
+
     formatDistance: function (l, def) {
 	if (l == 0) {
 	    return def;
@@ -940,6 +944,8 @@ var Application = L.Class.extend({
 			self._trackLayer.redraw();
 			document.getElementById('share').classList.remove('invisible');
 		    }
+
+		    self._hideSplash();
 		}
 	    };
 	}

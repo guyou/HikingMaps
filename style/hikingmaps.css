@@ -395,7 +395,7 @@ canvas.plot {
 }
 
 aside.arrow:before {
-    content: ">"
+    content: ">";
 }
 
 aside.arrow {
@@ -405,4 +405,11 @@ aside.arrow {
     color: #858585;
     position: absolute;
     right: 0.5rem;
+}
+
+section#splash {
+    width: 100%;u
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: 10000;
 }
