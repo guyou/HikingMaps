@@ -793,8 +793,9 @@ var Application = L.Class.extend({
 	return new CachedTileLayer(info.id, info.baseUrl, info.name, db,
 				   { attribution: info.attribution,
 				     maxZoom: 18,
+				     maxNativeZoom: 18,
 				     tileSize: this._tileSize,
-				     detectRetina: true,
+				     detectRetina: (info.baseUrl.indexOf('{r}') != -1),
 				     quadKey: (info.baseUrl.indexOf('{q}') != -1),
 				     subdomains: info.subdomains });
     },
