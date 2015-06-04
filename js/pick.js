@@ -1,6 +1,20 @@
+function addFileButton (elem, file, selectedFn) {
+    var name = file.name.split('/').pop().replace('.gpx', '');
+    var li = document.createElement('li');
+    var button = document.createElement('button');
+    button.textContent = name;
+    button.addEventListener('click', function () {
+	selectedFn(file);
+    }, false);
+
+    li.appendChild(button);
+    elem.appendChild(li);
+}
+
 function getFiles (sdcards, idx, elem, path, selectedFn) {
     if (idx < sdcards.length) {
 	var cursor = sdcards[idx].enumerate(path);
+	var files = [];
 
 	cursor.onerror = function() {
 	    console.error('Error in Device Storage API', cursor.error.name);
@@ -8,21 +22,20 @@ function getFiles (sdcards, idx, elem, path, selectedFn) {
 	};
 	cursor.onsuccess = function() {
 	    if (cursor.result) {
-	    	var file = cursor.result;
-		if (file.name.split('.').pop() == 'gpx') {
-		    var name = file.name.split('/').pop().replace('.gpx', '');
-		    var li = document.createElement('li');
-		    var button = document.createElement('button');
-		    button.textContent = name;
-		    button.addEventListener('click', function () {
-			selectedFn(file);
-		    }, false);
-
-		    li.appendChild(button);
-		    elem.appendChild(li);
+	    	var f = cursor.result;
+		if (f.name.split('.').pop() == 'gpx') {
+		    files.push(f);
 		}
 		cursor.continue();
 	    } else {
+		files.sort(function (a, b) {
+		    return a.name.localeCompare(b.name);
+		});
+
+		for (var i in files) {
+		    addFileButton(elem, files[i], selectedFn);
+		}
+
 		getFiles(sdcards, idx + 1, elem, path, selectedFn);
 	    }
 	};
