@@ -227,6 +227,12 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 	} else {
 	    var self = this;
 	    this._db.get(dbKey, function (arg) {
+		if (arg && arg.expires && arg.expires * 1000 > Date.now()) {
+		    self._db.get(dbKey, function (arg) {
+			deferred.resolve(arg && arg.blob);
+		    });
+		}
+
 		var xhr = new XMLHttpRequest({mozSystem: true});
 		xhr.open('GET', url, true);
 		if (arg && arg.etag) {
@@ -237,8 +243,16 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 		    if (xhr.status === 200) {
 			var blob = xhr.response;
 			var etag = xhr.getResponseHeader('ETag');
+			var expires = Date.parse(xhr.getResponseHeader('Expires'));
+			var minExpires = Math.floor(Date.now() / 1000) + 300;
+			var maxExpires = minExpires + 86400 - 300;
+			if (! (expires > minExpires)) {
+			    expires = minExpires;
+			} else if (expires > maxExpires) {
+			    expires = maxExpires;
+			}
 
-			self._db.put(dbKey, blob, etag);
+			self._db.put(dbKey, blob, etag, expires);
 			deferred.resolve(blob);
 		    } else if (arg && arg.blob) {
 			deferred.resolve(arg.blob);
@@ -431,10 +445,11 @@ var TileCacheDb = L.Class.extend({
 	transaction.objectStore('tiles').clear();
     },
 
-    put: function (key, blob, etag) {
+    put: function (key, blob, etag, expires) {
 	var obj = { layer : key[0], z : key[1], x : key[2], y : key[3],
 		    blob : blob };
 	etag && (obj.etag = etag);
+	expires && (obj.expires = expires);
 	var transaction = this._db.transaction(['tiles'], 'readwrite');
 	transaction.objectStore('tiles').put(obj);
     },
