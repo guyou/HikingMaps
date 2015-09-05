@@ -231,6 +231,7 @@ var CachedTileLayer = FunctionalTileLayer.extend({
 		    self._db.get(dbKey, function (arg) {
 			deferred.resolve(arg && arg.blob);
 		    });
+		    return;
 		}
 
 		var xhr = new XMLHttpRequest({mozSystem: true});
