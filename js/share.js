@@ -2,7 +2,7 @@ function onSave(activity, sdcard, fileName, blob) {
     var request = sdcard.addNamed(blob, 'tracks/' + fileName + '.gpx');
     request.onsuccess = function () {
 	var name = this.result;
-	activity.postResult(null);
+	window.close();
     }
     request.onerror = function () {
 	var elem = document.getElementById('status-error');
