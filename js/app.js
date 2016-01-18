@@ -31,6 +31,18 @@ var ScaledCRS_EPSG3857 = L.extend({}, L.CRS.EPSG3857, {
     }
 });
 
+function requestGpsWakeLock() {
+    var wakeLock = {
+	unlock : function() {}
+    };
+  
+    if (navigator.requestWakeLock) {
+	wakeLock = navigator.requestWakeLock('gps');
+    }
+
+    return wakeLock;
+};
+
 var ArrowIcon = L.Icon.extend({
     options: {
 	iconSize: [16, 16],
@@ -496,6 +508,7 @@ var Application = L.Class.extend({
 	this._routeLayer = null;
 	this._trackLayer = null;
 	this._trackingHandler = null;
+	this._gpsWakeLock = null;
 	this._pathTracker = null;
 
 	this._deferredUpdate = false;
@@ -1111,6 +1124,7 @@ var Application = L.Class.extend({
 
 	    navigator.geolocation.clearWatch(this._trackingHandler);
 	    this._trackingHandler = null;
+            this._gpsWakeLock.unlock();
 	    this._flushTrack(true);
 	} else {
 	    document.getElementById('locate').classList.add('invisible');
@@ -1128,6 +1142,7 @@ var Application = L.Class.extend({
 	    this._pathTracker.start();
 
 	    var self = this;
+	    this._gpsWakeLock = requestGpsWakeLock();
 	    this._trackingHandler = navigator.geolocation.watchPosition(
 		function(position) { self._positionUpdated(position); },
 		function(err) { },
