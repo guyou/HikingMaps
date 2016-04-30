@@ -39,6 +39,7 @@ body {
 .view {
     background: #f4f4f4;
     transform: translate(0, 0);
+    -webkit-transform: translate(0, 0);
     transition: transform 0.5s ease,
     opacity 0.2s ease;
 }
@@ -46,18 +47,22 @@ body {
 /* VIEWPORTS */
 .view[data-viewport="bottom"] {
     transform: translateY(100%);
+    -webkit-transform: translateY(100%);
 }
 
 .view[data-viewport="right"] {
     transform: translateX(100%);
+    -webkit-transform: translateX(100%);
 }
 
 .view[data-viewport="left"] {
     transform: translateX(-100%);
+    -webkit-transform: translateX(-100%);
 }
 
 .view[data-viewport="side"] {
     transform: translateX(80%);
+    -webkit-transform: translateX(80%);
 }
 
 section.window > div {
@@ -128,8 +133,8 @@ body[role="application"] section[role="region"] > header button {
     animation: 0.9s refresh-rotate infinite steps(30);
 }
 @keyframes refresh-rotate {
-    from { transform: rotate(1deg); }
-    to   { transform: rotate(360deg); }
+    from { transform: rotate(1deg); -webkit-transform: rotate(1deg); }
+    to   { transform: rotate(360deg); -webkit-transform: rotate(360deg); }
 }
 
 .arrow-icon {
@@ -140,6 +145,7 @@ body[role="application"] section[role="region"] > header button {
     border-bottom: 36px solid green;
     opacity: 0.6;
     transform-origin: 12px 24px;
+    -webkit-transform-origin: 12px 24px;
     position: relative;
     left: -6px;
     top: -16px;

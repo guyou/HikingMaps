@@ -1,312 +1,314 @@
 <!DOCTYPE HTML>
 <html manifest="offline.appcache">
   <head>
-    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, minimal-ui" />
     <meta charset="utf-8" />
-	<meta name="mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-	<title data-l10n-id="main-heading">HikingMaps</title>
+    <title data-l10n-id="main-heading">HikingMaps</title>
 
-	<link rel="icon" sizes="512x512" href="hikingmaps512.png" />
-	<link rel="icon" sizes="128x128" href="hikingmaps128.png" />
-	<link rel="icon" sizes="60x60" href="hikingmaps60.png" />
+    <link rel="icon" sizes="512x512" href="hikingmaps512.png" />
+    <link rel="icon" sizes="128x128" href="hikingmaps128.png" />
+    <link rel="icon" sizes="60x60" href="hikingmaps60.png" />
 
-	<link rel="resource" type="application/l10n" href="locales/locales.ini" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="resource" type="application/l10n" href="locales/locales.ini" />
 
-	<link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/drawer.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/icons.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/lists.css" />
-	<link rel="stylesheet" type="text/css" href="shared/style/switches.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/buttons.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/confirm.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/drawer.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/headers.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/icons.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/input_areas.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/lists.css" />
+    <link rel="stylesheet" type="text/css" href="shared/style/switches.css" />
 
-	<script type="text/javascript" defer="defer" src="shared/js/l10n.js"></script>
+    <script type="text/javascript" defer="defer" src="shared/js/l10n.js"></script>
 
-	<link rel="stylesheet" type="text/css" href="style/leaflet.css" />
-	<link rel="stylesheet" type="text/css" href="style/hikingmaps.css" />
+    <link rel="stylesheet" type="text/css" href="style/leaflet.css" />
+    <link rel="stylesheet" type="text/css" href="style/hikingmaps.css" />
 
-	<script type="text/javascript" defer="defer" src="js/leaflet.js"></script>
-	<script type="text/javascript" defer="defer" src="js/gpx.js"></script>
-	<script type="text/javascript" defer="defer" src="js/app.js"></script>
+    <script type="text/javascript" defer="defer" src="js/leaflet.js"></script>
+    <script type="text/javascript" defer="defer" src="js/gpx.js"></script>
+    <script type="text/javascript" defer="defer" src="js/app.js"></script>
   </head>
 
   <body id="body" role="application">
-	<section id="splash" class="view">
-	</section>
+    <section id="splash" class="view">
+    </section>
 
-	<section id="statistics" data-type="sidebar">
+    <section id="statistics" data-type="sidebar">
       <header>
-		<h1 data-l10n-id="statistics-heading">Statistics</h1>
+        <h1 data-l10n-id="statistics-heading">Statistics</h1>
       </header>
 
-	  <nav>
-		<table>
-		  <tbody>
-			<tr><th colspan="2" data-l10n-id="statistics-distance">distance</th></tr>
-			<tr><td colspan="2" id="stats-distance">-</td></tr>
-		  </tbody>
+      <nav>
+        <table>
+          <tbody>
+            <tr><th colspan="2" data-l10n-id="statistics-distance">distance</th></tr>
+            <tr><td colspan="2" id="stats-distance">-</td></tr>
+          </tbody>
 
-		  <tbody>
-			<tr><th colspan="2" data-l10n-id="statistics-time">time</th></tr>
-			<tr><th data-l10n-id="statistics-moving">moving</th><th data-l10n-id="statistics-total">total</th></tr>
-			<tr><td id="stats-moving-time">-</td><td id="stats-total-time">-</td></tr>
-		  </tbody>
+          <tbody>
+            <tr><th colspan="2" data-l10n-id="statistics-time">time</th></tr>
+            <tr><th data-l10n-id="statistics-moving">moving</th><th data-l10n-id="statistics-total">total</th></tr>
+            <tr><td id="stats-moving-time">-</td><td id="stats-total-time">-</td></tr>
+          </tbody>
 
-		  <tbody>
-			<tr><th colspan="2" data-l10n-id="statistics-moving-speed">moving speed</th></tr>
-			<tr><td colspan="2" id="stats-moving-speed">-</td></tr>
-		  </tbody>
+          <tbody>
+            <tr><th colspan="2" data-l10n-id="statistics-moving-speed">moving speed</th></tr>
+            <tr><td colspan="2" id="stats-moving-speed">-</td></tr>
+          </tbody>
 
-		  <tbody>
-			<tr><th colspan="2" data-l10n-id="statistics-elevation-min-max">elevation</th></tr>
-			<tr><th data-l10n-id="statistics-min">min</th><th data-l10n-id="statistics-max">max</th></tr>
-			<tr><td id="stats-min-elevation">-</td><td id="stats-max-elevation">-</td></tr>
-		  </tbody>
+          <tbody>
+            <tr><th colspan="2" data-l10n-id="statistics-elevation-min-max">elevation</th></tr>
+            <tr><th data-l10n-id="statistics-min">min</th><th data-l10n-id="statistics-max">max</th></tr>
+            <tr><td id="stats-min-elevation">-</td><td id="stats-max-elevation">-</td></tr>
+          </tbody>
 
-		  <tbody>
-			<tr><th colspan="2" data-l10n-id="statistics-elevation-loss-gain">elevation</th></tr>
-			<tr><th data-l10n-id="statistics-loss">loss</th><th data-l10n-id="statistics-gain">gain</th></tr>
-			<tr><td id="stats-elevation-loss">-</td><td id="stats-elevation-gain">-</td></tr>
-		  </tbody>
-		</table>
+          <tbody>
+            <tr><th colspan="2" data-l10n-id="statistics-elevation-loss-gain">elevation</th></tr>
+            <tr><th data-l10n-id="statistics-loss">loss</th><th data-l10n-id="statistics-gain">gain</th></tr>
+            <tr><td id="stats-elevation-loss">-</td><td id="stats-elevation-gain">-</td></tr>
+          </tbody>
+        </table>
 
-		<h2 id="header-elevation-plot" data-l10n-id="statistics-elevation-plot">Elevation Plot</h2>
+        <h2 id="header-elevation-plot" data-l10n-id="statistics-elevation-plot">Elevation Plot</h2>
 
-		<p id="elevation-unavailable" data-l10n-id="unavailable" class="plot">unavailable</p>
-		<canvas id="elevation-plot" class="plot invisible" />
-	  </nav>
-	</section>
+        <p id="elevation-unavailable" data-l10n-id="unavailable" class="plot">unavailable</p>
+        <canvas id="elevation-plot" class="plot invisible" />
+      </nav>
+    </section>
 
     <section id="main-view" class="view">
-	  <section id="mainwindow" class="window" role="region">
-		<header>
+      <section id="mainwindow" class="window" role="region">
+        <header>
           <button id="statsbutton"><span class="icon icon-menu">menu</span></button>
           <menu type="toolbar">
-			<button id="settingsbutton"><span class="icon config">Configuration</span></button>
+            <button id="settingsbutton"><span class="icon config">Configuration</span></button>
           </menu>
-		  <h1 data-l10n-id="main-heading">HikingMaps<span> </span><em id="route-length"></em></h1>
-		</header>
+          <h1 data-l10n-id="main-heading">HikingMaps<span> </span><em id="route-length"></em></h1>
+        </header>
 
-		<div id="map" class="map">
-		  <div id="track-length"></div>
+        <div id="map" class="map">
+          <div id="track-length"></div>
 
-		  <div id="bottom-toolbar" class="bottom-toolbar">
-			<a id="trackdelete" class="gaia-icon icon-delete bottom-btn" role="button"></a>
-			<a id="recordplaypause" class="gaia-icon icon-media-play bottom-btn" role="button"></a>
-			<a id="locate" class="gaia-icon icon-contact-location bottom-btn" role="button"></a>
-			<a id="share" class="gaia-icon icon-share bottom-btn invisible" role="button"></a>
-		  </div>
-		</div>
-	  </section>
-	</section>
+          <div id="bottom-toolbar" class="bottom-toolbar">
+            <a id="trackdelete" class="gaia-icon icon-delete bottom-btn" role="button"></a>
+            <a id="recordplaypause" class="gaia-icon icon-media-play bottom-btn" role="button"></a>
+            <a id="locate" class="gaia-icon icon-contact-location bottom-btn" role="button"></a>
+            <a id="share" class="gaia-icon icon-share bottom-btn invisible" role="button"></a>
+          </div>
+        </div>
+      </section>
+    </section>
 
     <section id="settings-view" class="view" data-viewport="bottom">
-	  <section id="settings" class="window skin-organic" role="region">
-		<header>
-		  <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="done">Done</button></menu>
-		  <h1 data-l10n-id="settings-heading">Settings</h1>
-		</header>
+      <section id="settings" class="window skin-organic" role="region">
+        <header>
+          <menu type="toolbar"><button id="settingsokbutton" data-l10n-id="done">Done</button></menu>
+          <h1 data-l10n-id="settings-heading">Settings</h1>
+        </header>
 
-		<div>
-		  <section>
-			<header><h2 data-l10n-id="settings-route">Route</h2></header>
+        <div>
+          <section>
+            <header><h2 data-l10n-id="settings-route">Route</h2></header>
 
-			<form id="trackfilepickitem" role="name">
-			  <p class="invisible"><input type="file" data-l10n-id="settings-gpx" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
-			  <button id="trackfilepick" data-l10n-id="pick" role="pick" type="button">Pick</button>
-			  <p>
-				<input id="trackfilename" data-l10n-id="settings-no-route" type="text" disabled="true" placeholder="None" value="" />
-				<button id="trackfileclear" type="reset">Clear</button>
-			  </p>
-			</form>
-		  </section>
+            <form id="trackfilepickitem" role="name">
+              <p class="invisible"><input type="file" data-l10n-id="settings-gpx" accept="application/gpx+xml" placeholder="GPX" id="trackfile" name="files[]" /></p>
+              <button id="trackfilepick" data-l10n-id="pick" role="pick" type="button">Pick</button>
+              <p>
+                <input id="trackfilename" data-l10n-id="settings-no-route" type="text" disabled="true" placeholder="None" value="" />
+                <button id="trackfileclear" type="reset">Clear</button>
+              </p>
+            </form>
+          </section>
 
-		  <section>
-			<header><h2 data-l10n-id="settings-units">Units</h2></header>
+          <section>
+            <header><h2 data-l10n-id="settings-units">Units</h2></header>
 
-			<ul data-type="list">
-			  <li>
-				<aside class="pack-end">
-				  <label class="pack-switch">
-					<input id="settings-units" type="checkbox" checked="checked" />
-					<span></span>
-				  </label>
-				</aside>
-				<p data-l10n-id="settings-units-metric">Metric</p>
-			  </li>
-			</ul>
-		  </section>
+            <ul data-type="list">
+              <li>
+                <aside class="pack-end">
+                  <label class="pack-switch">
+                    <input id="settings-units" type="checkbox" checked="checked" />
+                    <span></span>
+                  </label>
+                </aside>
+                <p data-l10n-id="settings-units-metric">Metric</p>
+              </li>
+            </ul>
+          </section>
 
-		  <section>
-			<header><h2 data-l10n-id="settings-map-data">Map Data</h2></header>
+          <section>
+            <header><h2 data-l10n-id="settings-map-data">Map Data</h2></header>
 
-			<ul data-type="list">
-			  <li>
-				<aside class="pack-end">
-				  <p><a id="layersbutton" class="gaia-icon icon-options"></a></p>
-				</aside>
-				<p><select id="maplayerselect"></select></p>
-			  </li>
+            <ul data-type="list">
+              <li>
+                <aside class="pack-end">
+                  <p><a id="layersbutton" class="gaia-icon icon-options"></a></p>
+                </aside>
+                <p><select id="maplayerselect"></select></p>
+              </li>
 
-			  <li>
-				<aside class="pack-end">
-				  <label class="pack-switch">
-					<input id="settings-offline" type="checkbox" />
-					<span></span>
-				  </label>
-				</aside>
-				<p data-l10n-id="settings-data-offline">Offline</p>
-			  </li>
+              <li>
+                <aside class="pack-end">
+                  <label class="pack-switch">
+                    <input id="settings-offline" type="checkbox" />
+                    <span></span>
+                  </label>
+                </aside>
+                <p data-l10n-id="settings-data-offline">Offline</p>
+              </li>
 
-			  <li>
-				<button id="clear-cache" class="danger" data-l10n-id="settings-clear-cache">Clear Cache</button>
-			  </li>
-			</ul>
-		  </section>
+              <li>
+                <button id="clear-cache" class="danger" data-l10n-id="settings-clear-cache">Clear Cache</button>
+              </li>
+            </ul>
+          </section>
 
-		  <section>
-			<header><h2 data-l10n-id="settings-map-scaling">Map Scaling</h2></header>
+          <section>
+            <header><h2 data-l10n-id="settings-map-scaling">Map Scaling</h2></header>
 
-			<ul data-type="list">
-			  <li>
-				<p><select id="settings-tilesize">
-					<option value="128">50 %</option>
-					<option value="171">67 %</option>
-					<option value="192">75 %</option>
-					<option value="230">90 %</option>
-					<option value="256">100 %</option>
-					<option value="320">125 %</option>
-					<option value="384">150 %</option>
-				</select></p>
-			  </li>
-			</ul>
-		  </section>
+            <ul data-type="list">
+              <li>
+                <p><select id="settings-tilesize">
+                    <option value="128">50 %</option>
+                    <option value="171">67 %</option>
+                    <option value="192">75 %</option>
+                    <option value="230">90 %</option>
+                    <option value="256">100 %</option>
+                    <option value="320">125 %</option>
+                    <option value="384">150 %</option>
+                </select></p>
+              </li>
+            </ul>
+          </section>
 
-		  <section>
-			<header><h2 data-l10n-id="settings-info">Information</h2></header>
+          <section>
+            <header><h2 data-l10n-id="settings-info">Information</h2></header>
 
-			<div data-type="list">
-			  <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">1.3</span><br />
-				 Copyright (C) 2014,
+            <div data-type="list">
+              <p><a target="_blank" href="http://hikingmaps.cmeerw.org">HikingMaps</a>, version <span id="hikingmaps-version">1.4.dev.4</span><br />
+                 Copyright (C) 2014,
     <a href="http://cmeerw.org">Christof Meerwald</a></p>
 
-			  <p>This program is free software: you can redistribute it
+              <p>This program is free software: you can redistribute it
     and/or modify it under the terms of the GNU General Public License
     as published by the Free Software Foundation, either version 3 of
     the License, or (at your option) any later version.</p>
 
-			  <p>This program is distributed in the hope that it will be
+              <p>This program is distributed in the hope that it will be
     useful, but WITHOUT ANY WARRANTY; without even the implied
     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
     See the GNU General Public License for more details.</p>
 
-			  <p>You should have received a copy of the GNU
+              <p>You should have received a copy of the GNU
     General Public License along with this program.  If not, see
     <a target="_blank"
     href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
-			</div>
-		  </section>
-		</div>
+            </div>
+          </section>
+        </div>
       </section>
     </section>
 
     <section id="layers-view" class="view" data-viewport="right">
-	  <section id="layers" class="window skin-organic" role="region">
-		<header>
+      <section id="layers" class="window skin-organic" role="region">
+        <header>
           <button id="addlayerbutton"><span class="gaia-icon icon-newadd"></span></button>
-		  <menu type="toolbar">
-			<button id="layersokbutton" data-l10n-id="done">Done</button>
-		  </menu>
-		  <h1 data-l10n-id="layers-heading">Map Layers</h1>
-		</header>
+          <menu type="toolbar">
+            <button id="layersokbutton" data-l10n-id="done">Done</button>
+          </menu>
+          <h1 data-l10n-id="layers-heading">Map Layers</h1>
+        </header>
 
-		<div>
-		  <section data-type="list">
-			<ul id="layers-list"></ul>
-		  </section>
-		</div>
+        <div>
+          <section data-type="list">
+            <ul id="layers-list"></ul>
+          </section>
+        </div>
       </section>
-	</section>
+    </section>
 
     <section id="layeredit-view" class="view" data-viewport="left">
-	  <section id="layer" class="window skin-organic" role="region">
-		<header>
+      <section id="layer" class="window skin-organic" role="region">
+        <header>
           <button id="layercancelbutton"><span class="gaia-icon icon-closecancel"></span></button>
-		  <menu type="toolbar">
-			<button id="layerokbutton" data-l10n-id="done">Done</button>
-		  </menu>
-		  <h1 data-l10n-id="layer-heading">Map Layer</h1>
-		</header>
+          <menu type="toolbar">
+            <button id="layerokbutton" data-l10n-id="done">Done</button>
+          </menu>
+          <h1 data-l10n-id="layer-heading">Map Layer</h1>
+        </header>
 
-		<div>
-		  <section data-type="list">
-			<input id="layer-id" type="hidden" />
+        <div>
+          <section data-type="list">
+            <input id="layer-id" type="hidden" />
 
-			<form role="layer"><p>
-			  <input id="layer-name" data-l10n-id="settings-layer-name" type="text" placeholder="Name" required="true" />
-			  <button type="reset">Clear</button>
-			</p></form>
+            <form role="layer"><p>
+              <input id="layer-name" data-l10n-id="settings-layer-name" type="text" placeholder="Name" required="true" />
+              <button type="reset">Clear</button>
+            </p></form>
 
-			<form role="layer"><p>
-			  <input id="layer-url" data-l10n-id="settings-layer-url" type="text" placeholder="URL" required="true" />
-			  <button type="reset">Clear</button>
-			</p></form>
+            <form role="layer"><p>
+              <input id="layer-url" data-l10n-id="settings-layer-url" type="text" placeholder="URL" required="true" />
+              <button type="reset">Clear</button>
+            </p></form>
 
-			<p><em>{s}</em>, <em>{z}</em>, <em>{x}</em>, <em>{y}</em> <span data-l10n-id="settings-layer-url-help-replaced-and">and</span> <em>{q}</em> <span data-l10n-id="settings-layer-url-help-replaced">are replaced by the subdomain, zoom level, x/y coordinates and quad-key respectively.</span></p>
+            <p><em>{s}</em>, <em>{z}</em>, <em>{x}</em>, <em>{y}</em> <span data-l10n-id="settings-layer-url-help-replaced-and">and</span> <em>{q}</em> <span data-l10n-id="settings-layer-url-help-replaced">are replaced by the subdomain, zoom level, x/y coordinates and quad-key respectively.</span></p>
 
-			<form role="layer"><p>
-			  <input id="layer-subdomains" data-l10n-id="settings-layer-subdomains" type="text" placeholder="Subdomains" required="true" />
-			  <button type="reset">Clear</button>
-			</p></form>
+            <form role="layer"><p>
+              <input id="layer-subdomains" data-l10n-id="settings-layer-subdomains" type="text" placeholder="Subdomains" required="true" />
+              <button type="reset">Clear</button>
+            </p></form>
 
-			<form role="layer"><p>
-			  <input id="layer-attribution" data-l10n-id="settings-layer-attribution" type="text" placeholder="Attribution" required="true" />
-			  <button type="reset">Clear</button>
-			</p></form>
+            <form role="layer"><p>
+              <input id="layer-attribution" data-l10n-id="settings-layer-attribution" type="text" placeholder="Attribution" required="true" />
+              <button type="reset">Clear</button>
+            </p></form>
 
-			<p><span data-l10n-id="settings-layer-examples-see">See</span> <a href="http://wiki.openstreetmap.org/wiki/Tile_servers" target="_blank">OpenStreetMap Wiki: Tile servers</a> <span data-l10n-id="settings-layer-examples">for some examples.</span></p>
+            <p><span data-l10n-id="settings-layer-examples-see">See</span> <a href="http://wiki.openstreetmap.org/wiki/Tile_servers" target="_blank">OpenStreetMap Wiki: Tile servers</a> <span data-l10n-id="settings-layer-examples">for some examples.</span></p>
 
-			<p data-l10n-id="settings-layer-licence">Please make sure you are adhering to the licensing terms of the tile server used.</p>
+            <p data-l10n-id="settings-layer-licence">Please make sure you are adhering to the licensing terms of the tile server used.</p>
 
-			<button id="layer-delete" data-l10n-id="settings-layer-delete" class="danger invisible">Delete</button>
-		  </section>
-		</div>
+            <button id="layer-delete" data-l10n-id="settings-layer-delete" class="danger invisible">Delete</button>
+          </section>
+        </div>
       </section>
-	</section>
+    </section>
 
-	<form id="confirm-track-delete" role="dialog" data-type="confirm" class="invisible">
+    <form id="confirm-track-delete" role="dialog" data-type="confirm" class="invisible">
       <section>
-		<h1 data-l10n-id="confirmation">Confirmation</h1>
-		<p data-l10n-id="confirm-track-delete">Are you sure you want to delete the recorded track?</p>
+        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <p data-l10n-id="confirm-track-delete">Are you sure you want to delete the recorded track?</p>
       </section>
       <menu>
-		<button id="confirm-track-delete-cancel" data-l10n-id="cancel">Cancel</button>
-		<button id="confirm-track-delete-do" data-l10n-id="delete" class="danger">delete</button>
+        <button id="confirm-track-delete-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="confirm-track-delete-do" data-l10n-id="delete" class="danger">delete</button>
       </menu>
-	</form>
+    </form>
 
-	<form id="confirm-cache-clear" role="dialog" data-type="confirm" class="invisible">
+    <form id="confirm-cache-clear" role="dialog" data-type="confirm" class="invisible">
       <section>
-		<h1 data-l10n-id="confirmation">Confirmation</h1>
-		<p data-l10n-id="confirm-clear-cache">Are you sure you want to clear the cache?</p>
+        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <p data-l10n-id="confirm-clear-cache">Are you sure you want to clear the cache?</p>
       </section>
       <menu>
-		<button id="confirm-cache-clear-cancel" data-l10n-id="cancel">Cancel</button>
-		<button id="confirm-cache-clear-do" data-l10n-id="clear" class="danger">Clear</button>
+        <button id="confirm-cache-clear-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="confirm-cache-clear-do" data-l10n-id="clear" class="danger">Clear</button>
       </menu>
-	</form>
+    </form>
 
-	<form id="confirm-layer-delete" role="dialog" data-type="confirm" class="invisible">
+    <form id="confirm-layer-delete" role="dialog" data-type="confirm" class="invisible">
       <section>
-		<h1 data-l10n-id="confirmation">Confirmation</h1>
-		<p data-l10n-id="confirm-delete-layer">Are you sure you want to delete this map layer?</p>
+        <h1 data-l10n-id="confirmation">Confirmation</h1>
+        <p data-l10n-id="confirm-delete-layer">Are you sure you want to delete this map layer?</p>
       </section>
       <menu>
-		<button id="confirm-layer-delete-cancel" data-l10n-id="cancel">Cancel</button>
-		<button id="confirm-layer-delete-do" data-l10n-id="delete" class="danger">Delete</button>
+        <button id="confirm-layer-delete-cancel" data-l10n-id="cancel">Cancel</button>
+        <button id="confirm-layer-delete-do" data-l10n-id="delete" class="danger">Delete</button>
       </menu>
-	</form>
+    </form>
   </body>
 </html>

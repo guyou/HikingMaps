@@ -54,6 +54,7 @@ var ArrowIcon = L.Icon.extend({
     createIcon: function (oldIcon) {
 	var div = (oldIcon && oldIcon.tagName === 'DIV') ? oldIcon : document.createElement('div');
 	div.innerHTML = '<div class="arrow-icon" style="transform: rotate(' +
+	    this.options.direction + 'deg); -webkit-transform: rotate(' +
 	    this.options.direction + 'deg)" />';
 	this._setIconStyles(div, 'icon');
 
