@@ -438,13 +438,14 @@ var PathTracker = L.Class.extend ({
 });
 
 
+var protocol = (document.location.protocol === 'https:') ? 'https:' : 'http:';
 var defaultMapInfo = [
     { name : 'MapQuest',
-      baseUrl : '//otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png',
+      baseUrl : protocol + '//otile{s}.mqcdn.com/tiles/1.0.0/map/{z}/{x}/{y}.png',
       subdomains : '1234',
-      attribution : 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>. Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="//developer.mapquest.com/content/osm/mq_logo.png">' },
+      attribution : 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>. Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="' + protocol + '//developer.mapquest.com/content/osm/mq_logo.png">' },
     { name : 'Thunderforest Outdoors',
-      baseUrl : '//{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png',
+      baseUrl : protocol + '//{s}.tile.thunderforest.com/outdoors/{z}/{x}/{y}.png',
       subdomains : 'abc',
       attribution : 'Map &copy; <a href="http://www.thunderforest.com">Thunderforest</a>, Data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' }
 ];
