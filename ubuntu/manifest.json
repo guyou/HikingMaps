@@ -1,7 +1,8 @@
 {
     "manifest_version": 2,
-    "version": "1.4.dev.6",
+    "version": "1.4.dev.7",
     "name": "HikingMaps",
+    "title": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
     "app": {
 	"launch": {
@@ -14,6 +15,7 @@
 	"128": "/hikingmaps128.png",
 	"512": "/hikingmaps512.png"
     },
+    "maintainer": "Christof Meerwald <cmeerw@cmeerw.org>",
     "developer":
     {
 	"name": "Christof Meerwald",

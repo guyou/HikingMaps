@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# v1.4.dev.6
+# v1.4.dev.7
 /index.html
 /js/app.js
 /js/gpx.js
@@ -16,7 +16,6 @@ CACHE MANIFEST
 /locales/fr.properties
 /locales/locales.ini
 /locales/pt-BR.properties
-/pick.html
 /pin-icon-end.png
 /pin-icon-start.png
 /pin-shadow.png
@@ -78,7 +77,6 @@ CACHE MANIFEST
 /shared/style/switches/images/switch/background.png
 /shared/style/switches/images/switch/background_rtl@1.5x.png
 /shared/style/switches/images/switch/background_rtl.png
-/share.html
 /style/hikingmaps.css
 /style/images/icons/checkbox@2x.png
 /style/images/icons/checkbox.png
