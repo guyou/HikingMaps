@@ -1,13 +1,20 @@
 {
     "manifest_version": 2,
     "version": "1.4.dev.7",
-    "name": "HikingMaps",
+    "name": "hikingmaps",
     "title": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
+    "framework": "ubuntu-sdk-14.04-html",
     "app": {
 	"launch": {
-	    "local_path": "/index.html"
+	    "local_path": "/www/index.html"
 	}
+    },
+    "hooks": {
+        "hikingmaps": {
+            "apparmor": "hikingmaps.json",
+            "desktop": "hikingmaps.desktop"
+        }
     },
     "icons":
     {
