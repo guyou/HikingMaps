@@ -4,7 +4,7 @@
     "name": "hikingmaps",
     "title": "HikingMaps",
     "description": "Map application for outdoor enthusiasts",
-    "framework": "ubuntu-sdk-14.04-html",
+    "framework": "ubuntu-sdk-15.04-html",
     "app": {
 	"launch": {
 	    "local_path": "/www/index.html"

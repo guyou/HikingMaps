@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=HikingMaps
-Exec=ubuntu-html5-app-launcher --www=www
+Exec=webapp-container www/index.html
 Icon=www/hikingmaps512.png
 Terminal=false
 Type=Application
