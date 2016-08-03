@@ -450,6 +450,10 @@ var defaultMapInfo = [
       attribution : 'Map &copy; <a href="http://www.thunderforest.com">Thunderforest</a>, Data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>' }
 ];
 
+// Images
+var img = null,
+	needle = null;
+
 var TileCacheDb = L.Class.extend({
     initialize: function (db) {
 	this._db = db;
@@ -597,6 +601,14 @@ var Application = L.Class.extend({
 
     _initApp: function () {
 	var self = this;
+
+	// Load the needle image
+	needle = new Image();
+	needle.src = 'needle.png';
+
+	// Load the compass image
+	img = new Image();
+	img.src = 'compass.png';
 
 	for (var idx = 0; idx < document.forms.length; ++idx) {
 	    document.forms[idx].onsubmit = function () {
@@ -1027,6 +1039,7 @@ var Application = L.Class.extend({
 	var DEVICE_RATIO = window.devicePixelRatio || 1;
 	canvas.width = Math.floor(canvas.clientWidth * DEVICE_RATIO + .5);
 	canvas.height = Math.floor(canvas.clientHeight * DEVICE_RATIO + .5);
+console.log("Compass canvas: "+canvas.width+" x "+canvas.height);
 
 	var ctx = canvas.getContext('2d');
 	ctx.lineWidth = DEVICE_RATIO;
@@ -1108,6 +1121,50 @@ var Application = L.Class.extend({
 	ctx.closePath();
 	ctx.fillStyle = '#88f';
 	ctx.fill();
+    },
+
+    _drawCompass: function(degrees) {
+       // Grab the compass element
+       var canvas = document.getElementById('heading-plot');
+
+       // Data available: enable canvas
+       document.getElementById('heading-unavailable').classList.add('invisible');
+       canvas.classList.remove('invisible');
+
+       // Canvas supported?
+       if (canvas.getContext('2d')) {
+       var DEVICE_RATIO = window.devicePixelRatio || 1;
+       canvas.width = Math.floor(canvas.clientWidth * DEVICE_RATIO + .5);
+       canvas.height = Math.floor(canvas.clientHeight * DEVICE_RATIO + .5);
+       console.log("Compass canvas: "+canvas.width+" x "+canvas.height);
+       if (canvas.width > canvas.height)
+          canvas.width = canvas.height;
+       else
+          canvas.height = canvas.width;
+		
+       ctx = canvas.getContext('2d');
+
+       // Draw the compass onto the canvas
+       ctx.drawImage(img, 0, 0);
+
+       // Save the current drawing state
+       ctx.save();
+
+       // Now move across and down half the 
+       ctx.translate(100, 100);
+
+       // Rotate around this point
+       ctx.rotate(degrees * (Math.PI / 180));
+
+       // Draw the image back and up
+       ctx.drawImage(needle, -100, -100);
+
+       // Restore the previous drawing state
+       ctx.restore();
+
+       } else {
+          alert("Canvas not supported!");
+       }
     },
 
     doLocate: function () {
@@ -1198,6 +1255,7 @@ var Application = L.Class.extend({
        } else {
           console.log("Switching to GPS view");
           /* TODO Update view */
+          this._drawCompass(5);
           mainView.dataset.viewport = 'right';
           delete gpsView.dataset.viewport;
        }
