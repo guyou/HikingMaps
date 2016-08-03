@@ -81,6 +81,26 @@
       </nav>
     </section>
 
+    <section id="gps-view" class="view" data-viewport="left">
+      <section id="gps" class="window" role="region">
+        <header>
+          <button id="statsbutton"><span class="icon icon-menu">menu</span></button>
+          <menu type="toolbar">
+            <button id="settingsbutton"><span class="icon config">Configuration</span></button>
+          </menu>
+          <h1 data-l10n-id="gps-heading">GPS</h1>
+        </header>
+
+        <h2 id="header-heading-plot" data-l10n-id="heading-plot">Heading</h2>
+
+        <p id="heading-unavailable" data-l10n-id="unavailable" class="plot">unavailable</p>
+        <canvas id="heading-plot" class="plot invisible" />
+          <div id="bottom-toolbar" class="bottom-toolbar">
+            <a id="mapbutton" class="gaia-icon icon-contact-location bottom-btn" role="button"></a>
+          </div>
+      </section>
+    </section>
+
     <section id="main-view" class="view">
       <section id="mainwindow" class="window" role="region">
         <header>
@@ -99,6 +119,7 @@
             <a id="recordplaypause" class="gaia-icon icon-media-play bottom-btn" role="button"></a>
             <a id="locate" class="gaia-icon icon-contact-location bottom-btn" role="button"></a>
             <a id="share" class="gaia-icon icon-share bottom-btn invisible" role="button"></a>
+            <a id="gpsbutton" class="gaia-icon icon-utility-data bottom-btn" role="button"></a>
           </div>
         </div>
       </section>

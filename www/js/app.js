@@ -671,6 +671,8 @@ var Application = L.Class.extend({
 	}, false);
 
 	document.getElementById('share').addEventListener('click', L.bind(this.doShareTrack, this), false);
+	document.getElementById('gpsbutton').addEventListener('click', L.bind(this.doOpenGps, this), false);
+	document.getElementById('mapbutton').addEventListener('click', L.bind(this.doOpenGps, this), false);
 	document.getElementById('settingsbutton').addEventListener('click', L.bind(this.doOpenSettings, this), false);
 	document.getElementById('settingsokbutton').addEventListener('click', L.bind(this.doEndSettings, this), false);
 	document.getElementById('statsbutton').addEventListener('click', L.bind(this.doOpenCloseStats, this), false);
@@ -1184,6 +1186,21 @@ var Application = L.Class.extend({
 	var transaction = this._db.transaction(['state', 'track'], 'readwrite');
 	transaction.objectStore('state').clear();
 	transaction.objectStore('track').clear();
+    },
+
+    doOpenGps: function () {
+       var mainView = document.getElementById('main-view');
+       var gpsView = document.getElementById('gps-view');
+       if (mainView.dataset.viewport !== undefined) {
+          console.log("Switching to MAP view");
+          delete mainView.dataset.viewport;
+          gpsView.dataset.viewport = 'right';
+       } else {
+          console.log("Switching to GPS view");
+          /* TODO Update view */
+          mainView.dataset.viewport = 'right';
+          delete gpsView.dataset.viewport;
+       }
     },
 
     doOpenSettings: function () {
